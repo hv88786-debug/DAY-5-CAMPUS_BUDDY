@@ -1,0 +1,2415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://www.gstatic.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://generativelanguage.googleapis.com https://*.firebaseio.com https://*.googleapis.com https://*.cloudfunctions.net;">
+<title>CampusBuddy — Student Assistant, GEC Ajmer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563EB',
+          secondary: '#0F172A',
+          bg: '#F8FAFC',
+          accent: '#3B82F6',
+        },
+        fontFamily: {
+          display: ['Lexend', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+          deva: ['Noto Sans Devanagari', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
+<style>
+  html, body { background: #0F172A; }
+  body { font-family: 'Inter', sans-serif; }
+  .font-display { font-family: 'Lexend', sans-serif; }
+
+  * { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+
+  /* ----- Phone shell ----- */
+  .app-shell-outer {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 12px;
+    background: radial-gradient(circle at 30% 20%, #1e293b 0%, #0F172A 60%);
+  }
+  .app-shell {
+    width: 100%; max-width: 430px;
+    height: min(900px, 94vh);
+    background: #F8FAFC;
+    border-radius: 40px;
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.55), 0 0 0 10px #0b1220, 0 0 0 11px #1e293b;
+    overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+  }
+  @media (max-width: 460px) {
+    .app-shell-outer { padding: 0; }
+    .app-shell { height: 100vh; max-width: 100%; border-radius: 0; box-shadow: none; }
+  }
+  .notch {
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 130px; height: 22px;
+    background: #0b1220; border-radius: 0 0 16px 16px; z-index: 50;
+  }
+
+  /* ----- screens ----- */
+  .screen {
+    position: absolute; inset: 0; top: 0;
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transform: translateY(8px) scale(0.99);
+    transition: opacity .32s cubic-bezier(.22,1,.36,1), transform .32s cubic-bezier(.22,1,.36,1);
+  }
+  .screen.active { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+  .screen-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+
+  .status-bar { height: 28px; }
+  .app-bar { backdrop-filter: blur(10px); background: rgba(248,250,252,0.92); }
+  .bottom-nav { backdrop-filter: blur(16px); background: rgba(255,255,255,0.92); border-top: 1px solid rgba(15,23,42,0.06); }
+  .nav-item { transition: transform .18s ease, color .18s ease; }
+  .nav-item:active { transform: scale(0.88); }
+  .nav-dot { width: 5px; height: 5px; border-radius: 50%; background: #2563EB; transition: opacity .2s ease, transform .2s ease; }
+
+  .press { transition: transform .15s ease, box-shadow .15s ease; }
+  .press:active { transform: scale(0.95); }
+  .card-tap { transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease; }
+  .card-tap:active { transform: scale(0.97); }
+
+  .pop-in { animation: pop-in .45s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes pop-in { from { opacity:0; transform: translateY(14px) scale(.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+  .stagger-1 { animation-delay: .05s; } .stagger-2 { animation-delay: .1s; }
+  .stagger-3 { animation-delay: .15s; } .stagger-4 { animation-delay: .2s; }
+  .stagger-5 { animation-delay: .25s; } .stagger-6 { animation-delay: .3s; }
+
+  @keyframes float-a { 0%,100%{ transform: translateY(0) rotate(-2deg);} 50%{ transform: translateY(-8px) rotate(0deg);} }
+  @keyframes float-b { 0%,100%{ transform: translateY(0) rotate(1deg);} 50%{ transform: translateY(-6px) rotate(2deg);} }
+  @keyframes float-c { 0%,100%{ transform: translateY(0) rotate(-1deg);} 50%{ transform: translateY(-10px) rotate(1deg);} }
+  .float-a { animation: float-a 5s ease-in-out infinite; }
+  .float-b { animation: float-b 6s ease-in-out infinite; }
+  .float-c { animation: float-c 4.5s ease-in-out infinite; }
+
+  .lang-tag-strip { display:flex; width:max-content; animation: marquee 18s linear infinite; }
+  @keyframes marquee { from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  .gradient-text { background: linear-gradient(90deg, #2563EB, #3B82F6 60%, #0F172A); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  .chat-bubble-in { animation: bubble-in .4s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes bubble-in { from{opacity:0; transform: translateY(8px) scale(.96);} to{opacity:1; transform: translateY(0) scale(1);} }
+
+  .typing-dot { animation: bounce-dot 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: .15s; }
+  .typing-dot:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce-dot { 0%,60%,100%{ transform: translateY(0); opacity:.4;} 30%{ transform: translateY(-5px); opacity:1;} }
+
+  .mic-btn { transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .3s ease; }
+  .mic-btn.listening { animation: mic-grow 1.6s ease-in-out infinite; }
+  @keyframes mic-grow { 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.04);} }
+
+  .ring { position:absolute; border-radius:50%; border:2px solid rgba(37,99,235,0.35); }
+  .ring-anim { animation: ring-pulse 2.4s ease-out infinite; }
+  .ring-anim.r2 { animation-delay: .6s; }
+  .ring-anim.r3 { animation-delay: 1.2s; }
+  @keyframes ring-pulse { 0% { transform: scale(0.7); opacity: .7; } 100% { transform: scale(1.9); opacity: 0; } }
+
+  .wave-bar { background: #2563EB; border-radius: 6px; width: 4px; }
+  .wave-bar.idle { height: 8px; opacity: .3; }
+  .wave-listening { animation: wave-bounce 1s ease-in-out infinite; }
+  @keyframes wave-bounce { 0%, 100% { height: 8px; } 50% { height: 32px; } }
+
+  .toggle { width: 46px; height: 26px; border-radius: 999px; background: #E2E8F0; position: relative; transition: background .2s ease; cursor: pointer; }
+  .toggle .knob { width: 20px; height: 20px; border-radius: 50%; background: white; position: absolute; top: 3px; left: 3px; transition: transform .2s cubic-bezier(.22,1,.36,1); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle.on { background: #2563EB; }
+  .toggle.on .knob { transform: translateX(20px); }
+
+  .glass-modal { backdrop-filter: blur(8px); }
+
+  /* Accessible focus states */
+  input:focus, button:focus-visible, a:focus-visible {
+    outline: 2px solid #2563EB; outline-offset: 2px;
+  }
+  /* Skip-to-content for keyboard users */
+  .skip-link { position:absolute; top:-40px; left:0; background:#2563EB; color:white; padding:6px 12px; z-index:100; border-radius:0 0 8px 0; }
+  .skip-link:focus { top:0; }
+
+  /* save-status pill */
+  .save-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600;
+    padding: 3px 9px; border-radius: 999px;
+    transition: opacity .3s ease;
+  }
+  .save-pill.saving { background: #FEF9C3; color: #854D0E; }
+  .save-pill.saved  { background: #DCFCE7; color: #166534; }
+  .save-pill.off    { background: #F1F5F9; color: #94A3B8; }
+
+  /* language chips */
+  .lang-chip {
+    font-size: 10px; font-weight: 700; letter-spacing: .03em;
+    padding: 2px 8px; border-radius: 999px;
+    background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE;
+    cursor: pointer; transition: background .15s;
+  }
+  .lang-chip:active { background: #DBEAFE; }
+
+  /* source label on bot bubbles */
+  .source-label {
+    font-size: 9px; font-weight: 700; letter-spacing: .04em;
+    padding: 1px 6px; border-radius: 999px; margin-top: 4px;
+    display: inline-block;
+  }
+  .source-faq  { background: #DCFCE7; color: #166534; }
+  .source-ai   { background: #EFF6FF; color: #2563EB; }
+  .source-demo { background: #F1F5F9; color: #64748B; }
+  .source-kb   { background: #DCFCE7; color: #166534; }
+
+  /* RAG citation card — sits under a KB-sourced bot bubble */
+  .citation-card {
+    max-width: 78%; margin-top: 5px;
+    background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;
+    padding: 7px 10px; font-size: 10.5px; color: #475569; line-height: 1.5;
+  }
+  .citation-card .citation-title { font-weight: 700; color: #0F172A; }
+  .citation-card .citation-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+  .citation-card a.citation-link { color: #2563EB; font-weight: 600; text-decoration: none; }
+  .confidence-pill {
+    font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 999px; white-space: nowrap;
+  }
+  .confidence-high { background: #DCFCE7; color: #166534; }
+  .confidence-mid  { background: #FEF9C3; color: #854D0E; }
+  .confidence-low  { background: #FEE2E2; color: #991B1B; }
+
+  /* Admin panel */
+  .admin-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .admin-stat { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px; text-align: center; }
+  .admin-input {
+    width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;
+    padding: 8px 10px; font-size: 12px; color: #0F172A;
+  }
+  .admin-input:focus { border-color: #2563EB; outline: none; }
+  .spinner {
+    width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff; display: inline-block; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .kb-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .kb-status-dot.online { background: #22C55E; }
+  .kb-status-dot.offline { background: #F59E0B; }
+
+  /* suggested questions */
+  .suggest-chip {
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+    padding: 5px 12px; border-radius: 999px;
+    background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE;
+    cursor: pointer; transition: background .15s, transform .15s;
+    flex-shrink: 0;
+  }
+  .suggest-chip:active { background: #DBEAFE; transform: scale(0.96); }
+
+  /* typing indicator label */
+  .typing-label {
+    font-size: 10px; color: #94A3B8; font-weight: 500;
+    margin-top: 3px; margin-left: 4px;
+  }
+
+  /* suggest-chip in welcome area */
+  #welcomeChips {
+    padding: 4px 0 2px 0;
+  }
+  #welcomeChips .suggest-chip {
+    font-size: 12px;
+    padding: 7px 14px;
+    border-radius: 999px;
+  }
+
+  /* Larger tap targets for mobile */
+  .nav-item { min-height: 52px; }
+
+  /* Chat input min height for tap */
+  #chatInput { min-height: 44px; }
+  #chatSend  { min-width: 44px; min-height: 44px; }
+
+  /* Source label spacing */
+  .source-label { margin-top: 5px; }
+
+  /* Citation card slight refinement */
+  .citation-card { border-radius: 14px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .float-a, .float-b, .float-c, .lang-tag-strip, .mic-btn.listening,
+    .ring-anim, .wave-listening, .typing-dot, .pop-in { animation: none !important; }
+  }
+</style>
+
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+</head>
+<body>
+
+<!-- Skip link for keyboard accessibility -->
+<a href="#chatLog" class="skip-link">Skip to chat</a>
+
+<div class="app-shell-outer" role="main">
+  <div class="app-shell" id="appShell" role="application" aria-label="CampusBuddy — GEC Ajmer Student Assistant">
+
+    <div class="notch hidden sm:block" aria-hidden="true"></div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar bg-bg flex items-center justify-between px-7 pt-2 text-[11px] font-semibold text-secondary shrink-0 z-30" aria-hidden="true">
+      <span id="clock">9:41</span>
+      <div class="flex items-center gap-1.5">
+        <svg width="14" height="10" viewBox="0 0 16 12" fill="none" aria-hidden="true"><path d="M1 4.5C4.5 1 11.5 1 15 4.5M3.3 7C5.6 4.8 10.4 4.8 12.7 7M5.7 9.4C7 8.1 9 8.1 10.3 9.4" stroke="#0F172A" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <svg width="16" height="10" viewBox="0 0 18 12" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="8" rx="2" stroke="#0F172A" stroke-width="1.2"/><rect x="2.5" y="3.5" width="9" height="5" rx="1" fill="#0F172A"/><path d="M16.5 4.5v3" stroke="#0F172A" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- TOP APP BAR -->
+    <header class="app-bar flex items-center justify-between px-5 py-3.5 shrink-0 z-30 border-b border-slate-200/70">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-display font-bold text-sm shadow-sm shadow-blue-200" aria-hidden="true">CL</span>
+        <div>
+          <p class="font-display font-bold text-[15px] text-secondary leading-tight">CampusBuddy</p>
+          <p class="text-[11px] text-slate-500 leading-tight">GEC Ajmer Student Assistant</p>
+        </div>
+      </div>
+      <button class="press w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center" id="profileBtn" aria-label="Open settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c1.5-3.6 4.7-5.5 7.5-5.5s6 1.9 7.5 5.5" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <!-- SCREENS -->
+    <div class="relative flex-1 overflow-hidden">
+
+      <!-- ===================== HOME ===================== -->
+      <section class="screen active" data-screen="home" aria-label="Home">
+        <div class="screen-scroll px-5 pt-5 pb-28 bg-bg">
+
+          <div class="pop-in relative rounded-3xl bg-gradient-to-br from-blue-50 to-white border border-blue-100 p-6 overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-200/40 rounded-full blur-2xl" aria-hidden="true"></div>
+            <p class="inline-flex items-center gap-1.5 bg-white border border-slate-200 rounded-full px-3 py-1 text-[10px] font-semibold text-slate-600 shadow-sm">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span> GEC Ajmer · Official Campus Assistant
+            </p>
+            <h1 class="font-display text-[26px] font-extrabold leading-[1.15] mt-4 text-secondary">Your Campus,<br><span class="gradient-text">Your Language.</span></h1>
+            <p class="text-[13px] text-slate-600 mt-2.5 leading-relaxed max-w-[280px]">Ask about fees, exams, scholarships or hostel — in Hindi, English or Hadoti.</p>
+            <div class="flex gap-2.5 mt-5">
+              <button class="press flex-1 bg-primary text-white text-sm font-semibold py-3 rounded-full shadow-md shadow-blue-200" onclick="goToScreen('chat')" aria-label="Ask a question">Ask a Question</button>
+              <button class="press bg-white text-secondary text-sm font-semibold py-3 px-4 rounded-full border border-slate-200" id="watchDemoBtn" aria-label="Watch demo">Demo</button>
+            </div>
+            <div class="relative h-20 mt-6" aria-hidden="true">
+              <div class="float-a absolute left-0 top-0 bg-white rounded-2xl px-3 py-2 shadow-md border border-slate-100 flex items-center gap-2">
+                <span class="text-base">🇮🇳</span><span class="text-xs font-semibold text-secondary">Hindi</span>
+              </div>
+              <div class="float-b absolute right-2 top-4 bg-white rounded-2xl px-3 py-2 shadow-md border border-slate-100 flex items-center gap-2">
+                <span class="text-base">🇬🇧</span><span class="text-xs font-semibold text-secondary">English</span>
+              </div>
+              <div class="float-c absolute left-16 bottom-0 bg-white rounded-2xl px-3 py-2 shadow-md border border-slate-100 flex items-center gap-2">
+                <span class="text-base">🏜️</span><span class="text-xs font-semibold text-secondary">Hadoti</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- marquee -->
+          <div class="pop-in stagger-1 mt-5 rounded-2xl border border-slate-200 bg-white py-3 overflow-hidden" aria-hidden="true">
+            <div class="lang-tag-strip text-slate-400 font-display font-semibold text-xs gap-6 px-4">
+              <span>हिंदी</span><span>•</span><span>ENGLISH</span><span>•</span><span>हाडोती</span><span>•</span><span>राजस्थानी</span><span>•</span>
+              <span>हिंदी</span><span>•</span><span>ENGLISH</span><span>•</span><span>हाडोती</span><span>•</span><span>राजस्थानी</span><span>•</span>
+            </div>
+          </div>
+
+          <!-- quick actions -->
+          <div class="grid grid-cols-2 gap-3 mt-5">
+            <button class="card-tap pop-in stagger-1 bg-secondary text-white rounded-2xl p-4 text-left shadow-md" onclick="goToScreen('chat')" aria-label="Check notices">
+              <span class="text-xl" aria-hidden="true">📢</span>
+              <p class="font-display font-semibold text-sm mt-2">Notices & Updates</p>
+              <p class="text-[11px] text-slate-300 mt-0.5">Latest from the college</p>
+            </button>
+            <button class="card-tap pop-in stagger-2 bg-white border border-slate-200 rounded-2xl p-4 text-left shadow-sm" onclick="goToScreen('chat')" aria-label="Exam schedule">
+              <span class="text-xl" aria-hidden="true">📅</span>
+              <p class="font-display font-semibold text-sm mt-2 text-secondary">Exam Schedule</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">Dates, forms & deadlines</p>
+            </button>
+            <button class="card-tap pop-in stagger-3 bg-white border border-slate-200 rounded-2xl p-4 text-left shadow-sm" onclick="goToScreen('chat')" aria-label="Fees information">
+              <span class="text-xl" aria-hidden="true">💰</span>
+              <p class="font-display font-semibold text-sm mt-2 text-secondary">Fee Structure</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">Deadlines & payment info</p>
+            </button>
+            <button class="card-tap pop-in stagger-4 bg-white border border-slate-200 rounded-2xl p-4 text-left shadow-sm" onclick="goToScreen('voice')" aria-label="Voice mode">
+              <span class="text-xl" aria-hidden="true">🎤</span>
+              <p class="font-display font-semibold text-sm mt-2 text-secondary">Ask by Voice</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">Speak in any language</p>
+            </button>
+          </div>
+
+          <!-- features -->
+          <p class="pop-in stagger-2 text-xs font-bold uppercase tracking-wider text-primary mt-7 mb-3">Campus Services</p>
+          <div class="space-y-3">
+            <div class="card-tap pop-in stagger-1 bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm" onclick="goToScreen('chat')">
+              <div class="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-lg shrink-0" aria-hidden="true">🏛️</div>
+              <div><p class="font-display font-semibold text-sm text-secondary">Official Information</p><p class="text-[12px] text-slate-500 mt-0.5">Fees, timetables, exam forms — direct from records</p></div>
+            </div>
+            <div class="card-tap pop-in stagger-2 bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm" onclick="goToScreen('chat')">
+              <div class="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-lg shrink-0" aria-hidden="true">🗣️</div>
+              <div><p class="font-display font-semibold text-sm text-secondary">Ask in Your Language</p><p class="text-[12px] text-slate-500 mt-0.5">Hindi, English, Hadoti, Rajasthani</p></div>
+            </div>
+            <div class="card-tap pop-in stagger-3 bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm" onclick="goToScreen('chat')">
+              <div class="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-lg shrink-0" aria-hidden="true">🎓</div>
+              <div><p class="font-display font-semibold text-sm text-secondary">Scholarships & Placements</p><p class="text-[12px] text-slate-500 mt-0.5">Eligibility, deadlines, registration updates</p></div>
+            </div>
+          </div>
+
+          <!-- stats -->
+          <div class="pop-in stagger-3 mt-7 bg-secondary rounded-2xl p-5 grid grid-cols-2 gap-4 text-center shadow-lg">
+            <div><p class="font-display text-2xl font-extrabold text-white">24/7</p><p class="text-[11px] text-slate-400 mt-0.5">Always Available</p></div>
+            <div><p class="font-display text-2xl font-extrabold text-white">4</p><p class="text-[11px] text-slate-400 mt-0.5">Languages Supported</p></div>
+            <div><p class="font-display text-2xl font-extrabold text-white">8+</p><p class="text-[11px] text-slate-400 mt-0.5">Topic Categories</p></div>
+            <div><p class="font-display text-2xl font-extrabold text-white">GEC</p><p class="text-[11px] text-slate-400 mt-0.5">Ajmer Official Info</p></div>
+          </div>
+
+          <!-- languages -->
+          <p class="pop-in stagger-3 text-xs font-bold uppercase tracking-wider text-primary mt-7 mb-3">Supported Languages</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="card-tap pop-in stagger-1 bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-sm"><p class="text-2xl mb-1">🇮🇳</p><p class="font-display font-bold text-sm text-secondary">Hindi</p><p class="font-deva text-[11px] text-slate-500">हिंदी</p></div>
+            <div class="card-tap pop-in stagger-2 bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-sm"><p class="text-2xl mb-1">🇬🇧</p><p class="font-display font-bold text-sm text-secondary">English</p><p class="text-[11px] text-slate-500">English</p></div>
+            <div class="card-tap pop-in stagger-3 bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-sm"><p class="text-2xl mb-1">🏜️</p><p class="font-display font-bold text-sm text-secondary">Hadoti</p><p class="font-deva text-[11px] text-slate-500">हाडोती</p></div>
+            <div class="card-tap pop-in stagger-4 bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-sm"><p class="text-2xl mb-1">🐫</p><p class="font-display font-bold text-sm text-secondary">Rajasthani</p><p class="font-deva text-[11px] text-slate-500">राजस्थानी</p></div>
+          </div>
+
+          <!-- testimonials -->
+          <p class="pop-in stagger-4 text-xs font-bold uppercase tracking-wider text-primary mt-7 mb-3">From Students</p>
+          <div class="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5 snap-x" role="list" aria-label="Student testimonials">
+            <div class="pop-in stagger-1 snap-start shrink-0 w-[230px] bg-white border border-slate-200 rounded-2xl p-4 shadow-sm" role="listitem">
+              <div class="text-amber-400 text-xs mb-2" aria-label="5 stars">★★★★★</div>
+              <p class="text-[12px] text-slate-700 leading-relaxed">"Fees ka date bhool gaya tha, CampusLingo se 2 second mein pata chal gaya."</p>
+              <div class="flex items-center gap-2 mt-3"><div class="w-7 h-7 rounded-full bg-blue-200 flex items-center justify-center text-[10px] font-semibold text-blue-800" aria-hidden="true">RP</div><p class="text-[11px] font-semibold text-secondary">Riya Pareek</p></div>
+            </div>
+            <div class="pop-in stagger-2 snap-start shrink-0 w-[230px] bg-white border border-slate-200 rounded-2xl p-4 shadow-sm" role="listitem">
+              <div class="text-amber-400 text-xs mb-2" aria-label="5 stars">★★★★★</div>
+              <p class="text-[12px] text-slate-700 leading-relaxed font-deva">"यो CampusBuddy Hadoti भी समझ लेवै — बढ़िया बात है।"</p>
+              <div class="flex items-center gap-2 mt-3"><div class="w-7 h-7 rounded-full bg-blue-300 flex items-center justify-center text-[10px] font-semibold text-blue-900" aria-hidden="true">DM</div><p class="text-[11px] font-semibold text-secondary">Deepak Meena</p></div>
+            </div>
+            <div class="pop-in stagger-3 snap-start shrink-0 w-[230px] bg-white border border-slate-200 rounded-2xl p-4 shadow-sm" role="listitem">
+              <div class="text-amber-400 text-xs mb-2" aria-label="5 stars">★★★★★</div>
+              <p class="text-[12px] text-slate-700 leading-relaxed">"Way faster than emailing the admin office."</p>
+              <div class="flex items-center gap-2 mt-3"><div class="w-7 h-7 rounded-full bg-blue-400 flex items-center justify-center text-[10px] font-semibold text-white" aria-hidden="true">AS</div><p class="text-[11px] font-semibold text-secondary">Ananya Sharma</p></div>
+            </div>
+          </div>
+
+          <!-- about -->
+          <div class="pop-in stagger-5 mt-7 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-primary">30 Days · 30 SIH Solutions</p>
+            <h3 class="font-display font-bold text-secondary mt-2 text-[15px]">Smart India Hackathon</h3>
+            <p class="text-[12px] text-slate-600 mt-2 leading-relaxed">Shipping one campus or civic solution each day — solving real problems for students across India.</p>
+            <div class="flex items-center justify-between mt-4">
+              <p class="text-[11px] text-slate-500">Built by <span class="font-semibold text-secondary">Harish Kumar</span> · GEC Ajmer</p>
+              <span class="bg-secondary text-white text-[11px] font-display font-bold px-3 py-1.5 rounded-full">Day 07</span>
+            </div>
+            <div class="flex items-center gap-2.5 mt-4">
+              <a href="#" class="w-8 h-8 rounded-full bg-bg border border-slate-200 flex items-center justify-center" aria-label="GitHub"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0F172A" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-2.1c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.71.08-.7.08-.7 1.16.08 1.78 1.19 1.78 1.19 1.03 1.76 2.7 1.25 3.36.95.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.41-5.26 5.69.42.36.78 1.07.78 2.16v3.2c0 .3.21.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/></svg></a>
+              <a href="#" class="w-8 h-8 rounded-full bg-bg border border-slate-200 flex items-center justify-center" aria-label="LinkedIn"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0F172A" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"/></svg></a>
+              <a href="#" class="w-8 h-8 rounded-full bg-bg border border-slate-200 flex items-center justify-center" aria-label="YouTube"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0F172A" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8ZM9.6 15.5V8.5L15.8 12l-6.2 3.5Z"/></svg></a>
+            </div>
+          </div>
+
+          <div class="pop-in stagger-6 mt-7 text-center pb-2">
+            <p class="text-[11px] text-slate-400">© 2026 CampusBuddy · GEC Ajmer</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Designed & built by Harish Kumar · Alpha Coders</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CHAT ===================== -->
+      <section class="screen" data-screen="chat" aria-label="Chat">
+        <div class="flex items-center justify-between px-5 py-3 bg-white border-b border-slate-100 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-display font-bold text-[11px]" aria-hidden="true">CB</span>
+            <div>
+              <p class="font-semibold text-[13px] text-secondary leading-tight">CampusBuddy Assistant</p>
+              <p class="text-[10px] text-emerald-600 flex items-center gap-1 leading-tight" id="chatStatusLine"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span>Campus Support Online</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="savePill" class="save-pill off" aria-live="polite">☁ Off</span>
+            <button class="press w-8 h-8 rounded-full bg-bg flex items-center justify-center" onclick="goToScreen('voice')" aria-label="Switch to voice mode">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#0F172A" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.5a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v8.5a4 4 0 0 0 4 4Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 11v1a7 7 0 0 1-14 0v-1M12 21v2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Suggested questions strip -->
+        <div class="px-4 pt-2.5 pb-1.5 bg-white border-b border-slate-100 flex items-center gap-2 overflow-x-auto shrink-0" id="suggestStrip" aria-label="Suggested questions">
+          <span class="text-[10px] text-slate-400 font-semibold shrink-0">Quick:</span>
+          <!-- chips injected by JS -->
+        </div>
+
+        <div id="chatLog" class="screen-scroll px-4 py-5 space-y-4 bg-bg" role="log" aria-live="polite" aria-label="Chat messages"></div>
+
+        <div class="px-4 py-3 bg-white border-t border-slate-100 shrink-0">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-[10px] text-slate-400 font-medium">Language:</span>
+            <button class="lang-chip" id="langChipEN" onclick="setLang('en')" aria-label="English" aria-pressed="true">🇬🇧 EN</button>
+            <button class="lang-chip" id="langChipHI" onclick="setLang('hi')" aria-label="Hindi" aria-pressed="false">🇮🇳 HI</button>
+            <button class="lang-chip" id="langChipHA" onclick="setLang('ha')" aria-label="Hadoti" aria-pressed="false">🏜️ HA</button>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <label for="chatInput" class="sr-only">Type your message</label>
+            <input id="chatInput" type="text" placeholder="Type your question in English…"
+              class="flex-1 bg-bg border border-slate-200 rounded-full px-4 py-2.5 text-[13px] focus:border-primary transition-colors"
+              autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Message input" />
+            <button id="chatSend" class="press w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0" aria-label="Send message">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== VOICE ===================== -->
+      <section class="screen" data-screen="voice" aria-label="Voice mode">
+        <div class="flex-1 flex flex-col items-center justify-between bg-gradient-to-b from-bg to-blue-50 px-6 py-8">
+          <div class="text-center pop-in">
+            <p class="text-xs font-bold uppercase tracking-wider text-primary">Speak Your Question</p>
+            <h2 class="font-display font-bold text-xl text-secondary mt-1" id="voiceStatusText">Tap to speak</h2>
+            <p class="text-[12px] text-slate-500 mt-1" id="voiceSubText" aria-live="polite">Hindi, English & Hadoti supported</p>
+          </div>
+
+          <div class="relative flex items-center justify-center" style="width:220px; height:220px;" aria-hidden="true">
+            <div class="ring ring-anim" id="ring1" style="width:120px;height:120px; display:none;"></div>
+            <div class="ring ring-anim r2" id="ring2" style="width:120px;height:120px; display:none;"></div>
+            <div class="ring ring-anim r3" id="ring3" style="width:120px;height:120px; display:none;"></div>
+            <button id="micBtn" class="mic-btn press relative z-10 w-28 h-28 rounded-full bg-primary text-white flex items-center justify-center shadow-2xl shadow-blue-300" aria-label="Tap to start speaking">
+              <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.5a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v8.5a4 4 0 0 0 4 4Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 11v1a7 7 0 0 1-14 0v-1M12 21v2"/></svg>
+            </button>
+          </div>
+
+          <div class="flex items-end gap-1.5 h-10" id="waveform" aria-hidden="true">
+            <div class="wave-bar idle"></div><div class="wave-bar idle"></div>
+            <div class="wave-bar idle"></div><div class="wave-bar idle"></div>
+            <div class="wave-bar idle"></div><div class="wave-bar idle"></div>
+            <div class="wave-bar idle"></div>
+          </div>
+
+          <div class="w-full space-y-3 pop-in stagger-2">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
+              <span class="text-lg" aria-hidden="true">🔊</span>
+              <p class="text-[12px] text-slate-600">Answers read aloud automatically in your language</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
+              <span class="text-lg" aria-hidden="true">🌍</span>
+              <p class="text-[12px] text-slate-600">Switch languages freely — Hindi, English or Hadoti</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== HISTORY ===================== -->
+      <section class="screen" data-screen="history" aria-label="Chat History">
+        <div class="screen-scroll px-5 pt-5 pb-6 bg-bg">
+          <div class="flex items-center justify-between pop-in">
+            <div>
+              <h2 class="font-display font-bold text-lg text-secondary">Chat History</h2>
+              <p class="text-[12px] text-slate-500 mt-0.5">Every saved conversation.</p>
+            </div>
+            <button onclick="clearHistory()" class="press text-[11px] text-slate-400 bg-white border border-slate-200 rounded-full px-3 py-1.5 font-medium" aria-label="Clear all chat history">Clear all</button>
+          </div>
+          <div id="historyList" class="mt-5 space-y-3" role="list" aria-label="Saved conversations">
+            <div id="historyEmpty" class="text-center py-16 text-slate-400" role="status">
+              <p class="text-3xl mb-3" aria-hidden="true">💬</p>
+              <p class="text-[13px] font-medium text-slate-500">No saved conversations yet</p>
+              <p class="text-[11px] mt-1.5 text-slate-400">Your conversations will appear here.<br>Turn on "Save conversations" in Settings.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SETTINGS ===================== -->
+      <section class="screen" data-screen="settings" aria-label="Settings">
+        <div class="screen-scroll px-5 pt-5 pb-6 bg-bg">
+          <h2 class="font-display font-bold text-lg text-secondary pop-in">Settings</h2>
+
+          <div class="pop-in stagger-1 mt-5 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-blue-200 flex items-center justify-center font-display font-bold text-blue-800" aria-hidden="true">HK</div>
+            <div><p class="font-display font-semibold text-secondary text-[14px]">Harish Kumar</p><p class="text-[12px] text-slate-500">B.Tech CSE · GEC Ajmer</p></div>
+          </div>
+
+          <p class="pop-in stagger-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-6 mb-2 px-1">Preferences</p>
+          <div class="pop-in stagger-2 bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100" role="group" aria-label="Preferences">
+            <div class="flex items-center justify-between px-4 py-3.5">
+              <div class="flex items-center gap-3">
+                <span class="text-base" aria-hidden="true">☁️</span>
+                <div><p class="text-[13px] font-medium text-secondary">Save conversations</p><p class="text-[10px] text-slate-400">Keeps a record of your chats</p></div>
+              </div>
+              <div class="toggle" id="autoSaveToggle" role="switch" aria-checked="false" aria-label="Auto-save conversations" tabindex="0"><div class="knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between px-4 py-3.5">
+              <div class="flex items-center gap-3">
+                <span class="text-base" aria-hidden="true">🗣️</span>
+                <p class="text-[13px] font-medium text-secondary">Default language</p>
+              </div>
+              <p class="text-[12px] text-slate-500">Hindi ›</p>
+            </div>
+            <div class="flex items-center justify-between px-4 py-3.5">
+              <div class="flex items-center gap-3">
+                <span class="text-base" aria-hidden="true">🔊</span>
+                <p class="text-[13px] font-medium text-secondary">Voice responses</p>
+              </div>
+              <div class="toggle on" id="voiceToggle" role="switch" aria-checked="true" aria-label="Voice responses" tabindex="0"><div class="knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between px-4 py-3.5">
+              <div class="flex items-center gap-3">
+                <span class="text-base" aria-hidden="true">🔔</span>
+                <p class="text-[13px] font-medium text-secondary">Notifications</p>
+              </div>
+              <div class="toggle on" role="switch" aria-checked="true" aria-label="Notifications" tabindex="0"><div class="knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between px-4 py-3.5">
+              <div class="flex items-center gap-3">
+                <span class="text-base" aria-hidden="true">🌙</span>
+                <p class="text-[13px] font-medium text-secondary">Dark mode</p>
+              </div>
+              <div class="toggle" role="switch" aria-checked="false" aria-label="Dark mode" tabindex="0"><div class="knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between px-4 py-3.5">
+              <div class="flex items-center gap-3">
+                <span class="text-base" aria-hidden="true">✦</span>
+                <div><p class="text-[13px] font-medium text-secondary">Smart Answers</p><p class="text-[10px] text-slate-400" id="aiModeSubtitle">Using campus FAQ</p></div>
+              </div>
+              <div class="toggle" id="aiModeToggle" role="switch" aria-checked="false" aria-label="Smart Answers — use enhanced responses" tabindex="0"><div class="knob"></div></div>
+            </div>
+          </div>
+
+          <p class="pop-in stagger-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-6 mb-2 px-1">General</p>
+          <div class="pop-in stagger-3 bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
+            <div class="flex items-center justify-between px-4 py-3.5"><p class="text-[13px] font-medium text-secondary">About CampusBuddy</p><span class="text-slate-400" aria-hidden="true">›</span></div>
+            <div class="flex items-center justify-between px-4 py-3.5"><p class="text-[13px] font-medium text-secondary">Privacy & data</p><span class="text-slate-400" aria-hidden="true">›</span></div>
+            <div class="flex items-center justify-between px-4 py-3.5"><p class="text-[13px] font-medium text-secondary">Help & support</p><span class="text-slate-400" aria-hidden="true">›</span></div>
+          </div>
+
+          <p class="pop-in stagger-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-6 mb-2 px-1">Answer Quality</p>
+          <div class="pop-in stagger-4 bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3.5">
+            <label for="geminiKeyInput" class="text-[13px] font-medium text-secondary block mb-2">Smart Answers API Key</label>
+            <input id="geminiKeyInput" type="password" placeholder="Paste your API key to enable Smart Answers…"
+              class="w-full bg-bg border border-slate-200 rounded-xl px-3 py-2.5 text-[12px] focus:border-primary transition-colors"
+              autocomplete="off" oninput="GeminiService.saveKey(this.value)" aria-describedby="geminiKeyHint" />
+            <p id="geminiKeyHint" class="text-[10px] text-slate-400 mt-2">Get your key from <span class="text-primary font-medium">aistudio.google.com</span> · Stored on this device only.</p>
+          </div>
+
+          <!-- ===== College Knowledge Base status ===== -->
+          <p class="pop-in stagger-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-6 mb-2 px-1">Campus Information</p>
+          <div class="pop-in stagger-4 admin-card p-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="kb-status-dot offline" id="kbStatusDot" aria-hidden="true"></span>
+                <p class="text-[13px] font-medium text-secondary" id="kbStatusText">Checking records…</p>
+              </div>
+              <button class="press text-[11px] font-semibold text-primary" id="kbRefreshBtn" aria-label="Refresh knowledge base stats">Refresh</button>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mt-3.5" id="kbStatsGrid" aria-label="Knowledge base document counts">
+              <!-- populated by KnowledgeBaseService -->
+            </div>
+            <p class="text-[10px] text-slate-400 mt-3" id="kbLastSync">Last sync: never</p>
+          </div>
+
+          <!-- ===== Admin Panel (Phase 7) ===== -->
+          <p class="pop-in stagger-5 text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-6 mb-2 px-1">Admin & Content</p>
+          <div class="pop-in stagger-5 admin-card p-4" id="adminPanel">
+
+            <!-- Locked state -->
+            <div id="adminLocked">
+              <div class="flex items-center gap-3">
+                <span class="text-base" aria-hidden="true">🔒</span>
+                <div class="flex-1"><p class="text-[13px] font-medium text-secondary">Admin access</p><p class="text-[10px] text-slate-400">Sign in to sync content and publish notices</p></div>
+              </div>
+              <div class="mt-3 space-y-2">
+                <input id="adminEmail" type="admin@test.com" placeholder="Admin email" class="admin-input" autocomplete="off" />
+                <input id="adminPass" type="sih-demo-admin" placeholder="Password" class="admin-input" autocomplete="off" />
+                <button class="press w-full bg-secondary text-white text-[12px] font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2" id="adminLoginBtn">Unlock Admin Panel</button>
+                <p class="text-[10px] text-slate-400" id="adminLoginMsg"></p>
+              </div>
+            </div>
+
+            <!-- Unlocked state -->
+            <div id="adminUnlocked" class="hidden">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-base" aria-hidden="true">🛠️</span>
+                  <p class="text-[13px] font-medium text-secondary" id="adminWho">Signed in</p>
+                </div>
+                <button class="press text-[11px] font-semibold text-slate-400" id="adminLogoutBtn">Sign out</button>
+              </div>
+
+              <button class="press w-full mt-3.5 bg-primary text-white text-[12px] font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2" id="syncNowBtn">
+                <span id="syncBtnLabel">🔄 Sync Website Now</span>
+              </button>
+              <p class="text-[10px] text-slate-400 mt-2" id="syncResultMsg"></p>
+
+              <div class="mt-4 pt-4 border-t border-slate-100">
+                <p class="text-[12px] font-semibold text-secondary mb-2">Publish update</p>
+                <div class="space-y-2">
+                  <select id="uploadCategory" class="admin-input">
+                    <option value="notices">Notice</option>
+                    <option value="exams">Exam Update</option>
+                    <option value="fees">Fee Information</option>
+                    <option value="scholarships">Scholarship Update</option>
+                    <option value="hostel">Hostel Update</option>
+                    <option value="placements">Placement Update</option>
+                    <option value="academics">Academic Calendar</option>
+                  </select>
+                  <input id="uploadTitle" type="text" placeholder="Title" class="admin-input" />
+                  <textarea id="uploadContent" rows="3" placeholder="Content" class="admin-input"></textarea>
+                  <input id="uploadSourceUrl" type="url" placeholder="Source URL (optional)" class="admin-input" />
+                  <button class="press w-full bg-secondary text-white text-[12px] font-semibold py-2.5 rounded-xl" id="uploadPublishBtn">Publish to Knowledge Base</button>
+                  <p class="text-[10px] text-slate-400" id="uploadMsg"></p>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-4 border-t border-slate-100">
+                <p class="text-[12px] font-semibold text-secondary mb-2">Analytics</p>
+                <div class="grid grid-cols-2 gap-2" id="analyticsGrid" aria-label="Usage analytics">
+                  <!-- populated by AnalyticsService -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="pop-in stagger-4 text-center text-[11px] text-slate-400 mt-7">CampusBuddy · v2.0 · GEC Ajmer</p>
+        </div>
+      </section>
+
+
+    </div><!-- /screens -->
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav shrink-0 z-30 flex items-center justify-between px-3 pt-2 pb-[max(10px,env(safe-area-inset-bottom))]" aria-label="Main navigation">
+      <button class="nav-item press flex-1 flex flex-col items-center gap-1 py-1.5 text-slate-400" data-nav="home" aria-label="Home">
+        <span class="text-[20px]" aria-hidden="true">🏠</span>
+        <span class="text-[10px] font-semibold">Home</span>
+        <span class="nav-dot opacity-0" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item press flex-1 flex flex-col items-center gap-1 py-1.5 text-slate-400" data-nav="chat" aria-label="Chat">
+        <span class="text-[20px]" aria-hidden="true">💬</span>
+        <span class="text-[10px] font-semibold">Chat</span>
+        <span class="nav-dot opacity-0" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item press flex-1 flex flex-col items-center gap-1 py-1.5 text-slate-400" data-nav="voice" aria-label="Voice">
+        <span class="text-[20px]" aria-hidden="true">🎤</span>
+        <span class="text-[10px] font-semibold">Voice</span>
+        <span class="nav-dot opacity-0" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item press flex-1 flex flex-col items-center gap-1 py-1.5 text-slate-400" data-nav="history" aria-label="History">
+        <span class="text-[20px]" aria-hidden="true">📜</span>
+        <span class="text-[10px] font-semibold">History</span>
+        <span class="nav-dot opacity-0" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item press flex-1 flex flex-col items-center gap-1 py-1.5 text-slate-400" data-nav="settings" aria-label="Settings">
+        <span class="text-[20px]" aria-hidden="true">⚙</span>
+        <span class="text-[10px] font-semibold">Settings</span>
+        <span class="nav-dot opacity-0" aria-hidden="true"></span>
+      </button>
+    </nav>
+
+    <!-- DEMO MODAL -->
+    <div id="demoModal" class="absolute inset-0 bg-secondary/60 glass-modal z-50 hidden items-center justify-center px-6" role="dialog" aria-modal="true" aria-labelledby="demoModalTitle">
+      <div class="bg-white rounded-3xl w-full p-7 text-center shadow-2xl pop-in">
+        <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl mx-auto mb-4" aria-hidden="true">▶️</div>
+        <h3 class="font-display font-bold text-lg text-secondary" id="demoModalTitle">Demo coming to YouTube soon</h3>
+        <p class="text-[13px] text-slate-600 mt-2.5 leading-relaxed">This is an app preview build. Try the live chat or voice demo from the tabs below.</p>
+        <button id="closeDemoModal" class="press mt-6 bg-primary text-white font-semibold px-6 py-3 rounded-full w-full">Got it</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* =========================================================
+   MODULE: DOMUtils — safe DOM helpers, no innerHTML for user content
+   Phase 1 (XSS prevention)
+   ========================================================= */
+const DOMUtils = {
+  /** Safely set text without XSS risk */
+  setText(el, text) {
+    if (el) el.textContent = String(text);
+  },
+  /** Create element with class and optional text */
+  el(tag, className, text) {
+    const e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text !== undefined) e.textContent = String(text);
+    return e;
+  },
+  /** Build a chat bubble safely — no innerHTML with user content */
+  makeBubble(text, who, isDevanagari) {
+    const wrap = document.createElement('div');
+    wrap.className = `chat-bubble-in flex ${who === 'user' ? 'justify-end' : 'justify-start'}`;
+    const bubble = document.createElement('div');
+    const baseClass = who === 'user'
+      ? 'max-w-[78%] bg-primary text-white text-[13px] rounded-2xl rounded-br-md px-4 py-2.5 leading-relaxed shadow-sm'
+      : 'max-w-[78%] bg-white text-secondary text-[13px] rounded-2xl rounded-bl-md px-4 py-2.5 leading-relaxed shadow-sm border border-slate-100';
+    bubble.className = baseClass + (isDevanagari ? ' font-deva' : '');
+    bubble.textContent = text; // textContent — safe
+    wrap.appendChild(bubble);
+    return { wrap, bubble };
+  }
+};
+
+/* =========================================================
+   MODULE: AdminUtils — small shared helpers
+   ========================================================= */
+const AdminUtils = {
+  /** Fast non-cryptographic FNV-1a hash, used client-side only to flag
+   *  likely-duplicate manual admin entries. The real sync engine (Cloud
+   *  Function) uses a proper SHA-256 content hash server-side — see
+   *  functions/index.js → contentHash(). */
+  hash(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h * 0x01000193) >>> 0;
+    }
+    return h.toString(16);
+  },
+  escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  },
+  timeAgo(tsOrIso) {
+    const ts = typeof tsOrIso === 'number' ? tsOrIso : Date.parse(tsOrIso);
+    if (!ts || isNaN(ts)) return 'unknown';
+    const diff = Date.now() - ts;
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    return Math.floor(diff / 86400000) + 'd ago';
+  }
+};
+
+/* =========================================================
+   MODULE: FAQ — campus knowledge base (SIH Phase 7)
+   Checked BEFORE Gemini. Returns { answer, category } or null.
+   ========================================================= */
+const FAQ = (() => {
+  const kb = [
+    // FEES
+    { keywords: ['fees', 'fee', 'tuition', 'शुल्क', 'फीस', 'फीस'], category: 'Fees',
+      answer: { en: 'Fee submission deadline is 20 July. Pay online via the college portal or at SBI campus branch.', hi: 'फीस जमा करने की अंतिम तिथि 20 जुलाई है। कॉलेज पोर्टल या SBI कैंपस ब्रांच पर ऑनलाइन भुगतान करें।', ha: 'फीस भरणे री आखिरी तारीख 20 जुलाई है। कॉलेज पोर्टल पर ऑनलाइन भर सकां।' } },
+    // ATTENDANCE
+    { keywords: ['attendance', 'उपस्थिति', 'हाजिरी', 'absent', 'present'],  category: 'Attendance',
+      answer: { en: 'Minimum 75% attendance is required per subject. Shortage applications must be submitted to HOD within 7 days.', hi: 'प्रत्येक विषय में न्यूनतम 75% उपस्थिति अनिवार्य है। कमी की अर्जी 7 दिन के भीतर HOD को दें।', ha: '75% उपस्थिति जरूरी है। कमी होवे तो 7 दिन में HOD ने अर्जी दो।' } },
+    // EXAM FORM
+    { keywords: ['exam form', 'examination form', 'परीक्षा फॉर्म', 'form date'], category: 'Exams',
+      answer: { en: 'Exam form submission closes 28 June. Fill it on the university exam portal. Late fee applies after the deadline.', hi: 'परीक्षा फॉर्म जमा करने की तिथि 28 जून है। विश्वविद्यालय परीक्षा पोर्टल पर भरें। देरी पर विलंब शुल्क लगेगा।', ha: 'परीक्षा फॉर्म री आखिरी तारीख 28 जून है। यूनिवर्सिटी पोर्टल पर भरो।' } },
+    // SCHOLARSHIP
+    { keywords: ['scholarship', 'छात्रवृत्ति', 'स्कॉलरशिप', 'stipend', 'stipend'], category: 'Scholarships',
+      answer: { en: 'Apply for scholarships via NSP (National Scholarship Portal). SC/ST/OBC scholarships: apply by 31 August. Merit scholarship: CGPA ≥ 8.0 required.', hi: 'NSP (राष्ट्रीय छात्रवृत्ति पोर्टल) पर आवेदन करें। SC/ST/OBC: 31 अगस्त तक। मेरिट स्कॉलरशिप के लिए CGPA ≥ 8.0 चाहिए।', ha: 'NSP पोर्टल पर छात्रवृत्ति री अर्जी करो। SC/ST/OBC: 31 अगस्त तक।' } },
+    // HOSTEL
+    { keywords: ['hostel', 'hostel fees', 'accommodation', 'हॉस्टल', 'room'], category: 'Hostel',
+      answer: { en: 'Hostel fees: ₹12,000/semester (4-seater) or ₹18,000/semester (2-seater). Apply via college hostel office by 15 July.', hi: 'हॉस्टल शुल्क: ₹12,000/सेमेस्टर (4-सीटर) या ₹18,000/सेमेस्टर (2-सीटर)। 15 जुलाई तक आवेदन करें।', ha: 'हॉस्टल री फीस ₹12,000 प्रति सेमेस्टर है। 15 जुलाई तक अर्जी करो।' } },
+    // LIBRARY
+    { keywords: ['library', 'पुस्तकालय', 'book', 'books', 'timing'], category: 'Library',
+      answer: { en: 'Library is open 8 AM – 8 PM on weekdays, 9 AM – 5 PM on Saturdays. Closed Sundays.', hi: 'पुस्तकालय सोमवार-शुक्रवार 8 AM – 8 PM, शनिवार 9 AM – 5 PM। रविवार बंद।', ha: 'पुस्तकालय सोमवार-शुक्रवार 8 AM – 8 PM, शनिवार 9 AM – 5 PM खुली रहवे।' } },
+    // PLACEMENT
+    { keywords: ['placement', 'placements', 'job', 'internship', 'campus drive', 'recruit', 'प्लेसमेंट'], category: 'Placements',
+      answer: { en: 'Placement cell opens registrations in August. Eligible criteria: No active backlogs, CGPA ≥ 6.0. Contact TPO office for company visit schedule.', hi: 'प्लेसमेंट सेल अगस्त में पंजीकरण शुरू करता है। योग्यता: कोई बैकलॉग नहीं, CGPA ≥ 6.0। TPO कार्यालय से संपर्क करें।', ha: 'प्लेसमेंट री पंजीकरण अगस्त में होवे। CGPA ≥ 6.0 जरूरी है।' } },
+    // ASSIGNMENT
+    { keywords: ['assignment', 'submit', 'submission', 'असाइनमेंट', 'जमा'], category: 'Academics',
+      answer: { en: 'Assignment submission deadline varies by subject. Check your department notice board or faculty group for specific dates.', hi: 'असाइनमेंट की अंतिम तिथि विषयानुसार अलग है। अपने विभाग के नोटिस बोर्ड या फैकल्टी ग्रुप पर देखें।', ha: 'असाइनमेंट री तारीख विषय मुताबिक अलग होवे। नोटिस बोर्ड देखो।' } },
+  ];
+
+  return {
+    match(query) {
+      const q = query.toLowerCase();
+      for (const item of kb) {
+        if (item.keywords.some(kw => q.includes(kw))) return item;
+      }
+      return null;
+    },
+    getAnswer(item, lang) {
+      return item.answer[lang] || item.answer.en;
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: AuthService — RAG upgrade
+   Real Firebase Auth identity so Firestore security rules can
+   enforce per-user chat isolation and admin-only KB writes.
+   Falls back to a local pseudo-uid when Firebase isn't configured
+   (keeps the app fully functional in offline/demo mode).
+   ========================================================= */
+const AuthService = (() => {
+  let auth = null;
+  let user = null;        // Firebase user object once signed in
+  let isAdmin = false;
+  let ready = false;
+  const listeners = [];
+
+  const LOCAL_UID_KEY = 'cl_uid';
+  function localUid() {
+    let id = localStorage.getItem(LOCAL_UID_KEY);
+    if (!id) { id = 'user_' + Math.random().toString(36).slice(2, 10); localStorage.setItem(LOCAL_UID_KEY, id); }
+    return id;
+  }
+
+  function notify() { listeners.forEach(fn => { try { fn({ uid: api.uid(), isAdmin }); } catch (e) {} }); }
+
+  const api = {
+    /** Call once Firebase app is initialized by FirebaseService */
+    async init(firebaseApp) {
+      if (!firebaseApp) { ready = true; notify(); return; }
+      try {
+        auth = firebase.auth();
+        auth.onAuthStateChanged(async (u) => {
+          user = u;
+          if (u) {
+            const token = await u.getIdTokenResult().catch(() => null);
+            isAdmin = !!(token && token.claims && token.claims.admin);
+          } else {
+            isAdmin = false;
+          }
+          ready = true;
+          notify();
+        });
+        // Anonymous sign-in gives every student a stable, real auth.uid
+        if (!auth.currentUser) await auth.signInAnonymously().catch(e => console.warn('Anon sign-in failed:', e.message));
+      } catch (e) {
+        console.warn('AuthService init failed — local uid fallback active.', e);
+        ready = true; notify();
+      }
+    },
+
+    uid() { return (user && user.uid) || localUid(); },
+    isReady() { return ready; },
+    isAdmin() { return isAdmin; },
+    isAnonymous() { return !user || user.isAnonymous; },
+
+    /** Admin sign-in with email/password. Admin status is granted via a
+     *  custom claim set server-side (see functions/index.js setAdminClaim) —
+     *  signing in alone does NOT grant admin rights, only a valid claim does. */
+    async adminSignIn(email, password) {
+      if (!auth) throw new Error('AUTH_NOT_CONFIGURED');
+      const cred = await auth.signInWithEmailAndPassword(email, password);
+      const token = await cred.user.getIdTokenResult(true);
+      isAdmin = !!(token.claims && token.claims.admin);
+      notify();
+      if (!isAdmin) throw new Error('NOT_ADMIN');
+      return true;
+    },
+
+    async signOutAdmin() {
+      if (auth) await auth.signOut().catch(() => {});
+      isAdmin = false;
+      if (auth) await auth.signInAnonymously().catch(() => {});
+      notify();
+    },
+
+    onChange(fn) { listeners.push(fn); }
+  };
+  return api;
+})();
+
+/* =========================================================
+   MODULE: GeminiService — Phase 1 & 2
+   - AbortController timeout (15s)
+   - Retry logic (up to 2 retries)
+   - Request throttle (3s cooldown)
+   - Conversation context (last 10 messages)
+   ========================================================= */
+const GeminiService = (() => {
+  const MODEL = 'gemini-2.5-flash';
+  const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+
+  // Phase 6 — college-specific system prompt. Retrieved KB context (if any)
+  // is appended per-call in callWithContext() so Gemini grounds its answer
+  // in official data first and only falls back to general knowledge.
+  const SYSTEM_PROMPT = `You are CampusLingo, an official AI campus assistant for GEC Ajmer.
+Your first priority is information retrieved from the official college knowledge base, which will be provided to you as CONTEXT before each question.
+If the CONTEXT answers the question: base your answer strictly on it, do not contradict it, and do not invent extra facts beyond what it states.
+If the CONTEXT is empty or does not answer the question: say so internally and answer using your own general knowledge, but never invent specific college facts (dates, fees, amounts, rules) that were not in the CONTEXT.
+Always keep answers concise, friendly, and under 100 words.
+Reply in the same language the user wrote in (English, Hindi, or Hadoti/Rajasthani dialect — simple Hindi if Hadoti isn't possible).`;
+
+  let apiKey = localStorage.getItem('cl_gemini_key') || '';
+  let lastCallTime = 0;
+  const COOLDOWN_MS = 3000;
+  // Conversation context window (last 10 turns)
+  const contextHistory = [];
+  const MAX_CONTEXT = 10;
+
+  function addToContext(role, text) {
+    contextHistory.push({ role, parts: [{ text }] });
+    if (contextHistory.length > MAX_CONTEXT * 2) contextHistory.splice(0, 2);
+  }
+
+  async function fetchWithRetry(url, body, retries = 2) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000); // 15s timeout
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+        if (res.ok) return res;
+        if (res.status === 429) throw new Error('RATE_LIMIT');
+        if (res.status >= 500 && attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        throw new Error(`API_ERROR_${res.status}`);
+      } catch (err) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') throw new Error('TIMEOUT');
+        if (attempt === retries) throw err;
+        await new Promise(r => setTimeout(r, 800));
+      }
+    }
+  }
+
+  async function rawCall(userMessage, systemPrompt) {
+    if (!apiKey) throw new Error('NO_KEY');
+    const now = Date.now();
+    if (now - lastCallTime < COOLDOWN_MS) throw new Error('THROTTLED');
+    lastCallTime = now;
+
+    addToContext('user', userMessage);
+
+    const url = `${ENDPOINT}?key=${apiKey}`;
+    const body = {
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: [...contextHistory],
+      generationConfig: { maxOutputTokens: 300, temperature: 0.7 },
+    };
+
+    const res = await fetchWithRetry(url, body);
+    const data = await res.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) throw new Error('EMPTY_RESPONSE');
+
+    addToContext('model', reply);
+    return reply;
+  }
+
+  return {
+    saveKey(val) {
+      apiKey = val.trim();
+      localStorage.setItem('cl_gemini_key', apiKey);
+    },
+    getKey() { return apiKey; },
+    hasKey() { return !!apiKey; },
+    resetContext() { contextHistory.length = 0; },
+
+    async call(userMessage) {
+      return rawCall(userMessage, SYSTEM_PROMPT);
+    },
+
+    /** Phase 3/6 — RAG call: grounds the answer in retrieved KB documents. */
+    async callWithContext(userMessage, kbDocs) {
+      let prompt = SYSTEM_PROMPT;
+      if (kbDocs && kbDocs.length) {
+        const ctx = kbDocs.map((d, i) =>
+          `[${i + 1}] Title: ${d.title}\nCategory: ${d.category}\nContent: ${d.content}\nSource: ${d.sourceUrl || 'official college records'}\nUpdated: ${d.updatedAt || 'unknown'}`
+        ).join('\n\n');
+        prompt += `\n\nCONTEXT (official college knowledge base):\n${ctx}\n\nUse the CONTEXT above to answer. Mention specific dates/amounts exactly as given.`;
+      } else {
+        prompt += `\n\nCONTEXT (official college knowledge base): (empty — no matching official record found)`;
+      }
+      return rawCall(userMessage, prompt);
+    },
+
+    errorMessage(err, lang) {
+      const msgs = {
+        NO_KEY:   { en: 'Please add your API key in Settings to enable Smart Answers.', hi: 'Smart Answers के लिए Settings में API key डालें।', ha: 'Settings में key डालो।' },
+        THROTTLED:{ en: 'Please wait a moment before sending another message.', hi: 'अगला संदेश भेजने से पहले कृपया एक पल रुकें।', ha: 'थोड़ो इंतजार करो।' },
+        TIMEOUT:  { en: 'Request timed out. Please check your connection and try again.', hi: 'अनुरोध समय से अधिक हो गया। कनेक्शन जांचें।', ha: 'Request timeout हो गई। फिर कोशिश करो।' },
+        RATE_LIMIT:{ en: 'Too many requests. Please wait a minute and try again.', hi: 'बहुत अधिक अनुरोध। एक मिनट बाद पुनः प्रयास करें।', ha: 'जादा request है। थोड़ो रुको।' },
+        DEFAULT:  { en: 'Sorry, I couldn\'t process your request. Please try again.', hi: 'माफ करें, आपका अनुरोध संसाधित नहीं हो सका।', ha: 'माफ करजो, फिर कोशिश करो।' },
+      };
+      const errKey = Object.keys(msgs).find(k => err.message?.includes(k)) || 'DEFAULT';
+      return (msgs[errKey][lang] || msgs[errKey].en);
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: FirebaseService — Phase 2 (+ RAG upgrade)
+   Per-user path: users/{uid}/chats/{chatId}
+   Falls back to localStorage if not configured or offline.
+   Also bootstraps AuthService and exposes db/functions handles
+   so KnowledgeBaseService, AnalyticsService and AdminPanel reuse
+   a single Firebase app instance instead of re-initializing.
+   ========================================================= */
+const FirebaseService = (() => {
+  // TODO: paste your Firebase project config here to go live.
+  // Until then the whole app keeps working on localStorage fallbacks.
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDzHTGu3HXS5ymfs0F8crfchU_2gRtzm-I",
+    authDomain: "day-5-b312a.firebaseapp.com",
+    projectId: "day-5-b312a",
+  };
+  const FUNCTIONS_REGION = 'us-central1'; // change to match where you deploy functions/
+
+  const LOCAL_KEY = 'cl_history';
+
+  let db = null;
+  let fns = null;
+  let ready = false;
+
+  try {
+    if (FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY') {
+      const app = firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.firestore();
+      db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+      if (firebase.functions) fns = firebase.app().functions(FUNCTIONS_REGION);
+      ready = true;
+      AuthService.init(app);
+    } else {
+      AuthService.init(null);
+    }
+  } catch (e) { console.warn('Firebase init failed — localStorage fallback active.', e); AuthService.init(null); }
+
+  function uid() { return AuthService.uid(); }
+
+  function chatsRef() {
+    return db.collection('users').doc(uid()).collection('chats');
+  }
+
+  return {
+    isReady() { return ready; },
+    db() { return db; },              // shared Firestore handle for other modules
+    functions() { return fns; },      // shared Functions handle (may be null if not configured)
+    uid,
+
+    async save(entry) {
+      // entry: { userText, botText, lang, ts }
+      const doc = { ...entry, createdAt: ready ? firebase.firestore.FieldValue.serverTimestamp() : null };
+      if (ready) {
+        try {
+          await chatsRef().add(doc);
+          return 'firebase';
+        } catch (e) { /* fall through */ }
+      }
+      // localStorage fallback
+      const history = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+      history.unshift(entry);
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(history.slice(0, 50)));
+      return 'local';
+    },
+
+    async load() {
+      if (ready) {
+        try {
+          const snap = await chatsRef().orderBy('createdAt', 'desc').limit(30).get();
+          const items = snap.docs.map(d => {
+            const data = d.data();
+            return { ...data, ts: data.ts || (data.createdAt?.toMillis?.() || Date.now()) };
+          });
+          if (items.length > 0) return items;
+        } catch (e) { /* fall through */ }
+      }
+      return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+    },
+
+    async clear() {
+      localStorage.removeItem(LOCAL_KEY);
+      if (ready) {
+        try {
+          const snap = await chatsRef().limit(50).get();
+          const batch = db.batch();
+          snap.docs.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+        } catch (e) {}
+      }
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: KnowledgeBaseService — Phase 1, 4 & 10
+   Reads the official knowledge base from Firestore:
+     notices / exams / fees / scholarships / hostel / placements / academics
+   Each document: { title, content, sourceUrl, category, updatedAt, confidenceScore }
+   Production-readiness: in-memory + localStorage cache (10 min TTL),
+   read timeout + single retry, offline fallback to last good cache.
+   ========================================================= */
+const KnowledgeBaseService = (() => {
+  const CATEGORIES = ['notices', 'exams', 'fees', 'scholarships', 'hostel', 'placements', 'academics'];
+  const CACHE_TTL_MS = 10 * 60 * 1000;
+  const READ_TIMEOUT_MS = 6000;
+  const CACHE_KEY = 'cl_kb_cache_v1';
+
+  let memCache = null;       // { ts, byCategory: { category: [docs] } }
+  let lastSyncAt = null;
+
+  function loadDiskCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function saveDiskCache(cache) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch (e) {}
+  }
+
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('KB_TIMEOUT')), ms)),
+    ]);
+  }
+
+  async function fetchCategory(db, category, retries = 1) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const snap = await withTimeout(db.collection(category).limit(200).get(), READ_TIMEOUT_MS);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        if (attempt === retries) throw e;
+        await new Promise(r => setTimeout(r, 600));
+      }
+    }
+  }
+
+  return {
+    categories() { return CATEGORIES.slice(); },
+    lastSyncAt() { return lastSyncAt; },
+    isOnline() { return FirebaseService.isReady(); },
+
+    /** Returns { byCategory, fromCache, online } — always resolves, never throws. */
+    async getAll(forceRefresh = false) {
+      const db = FirebaseService.db();
+      const now = Date.now();
+
+      if (!forceRefresh && memCache && (now - memCache.ts) < CACHE_TTL_MS) {
+        return { byCategory: memCache.byCategory, fromCache: true, online: !!db };
+      }
+
+      if (db) {
+        try {
+          const results = await Promise.all(CATEGORIES.map(c => fetchCategory(db, c)));
+          const byCategory = {};
+          CATEGORIES.forEach((c, i) => { byCategory[c] = results[i]; });
+          memCache = { ts: now, byCategory };
+          lastSyncAt = now;
+          saveDiskCache(memCache);
+          return { byCategory, fromCache: false, online: true };
+        } catch (e) {
+          console.warn('KnowledgeBaseService: Firestore read failed, using cache.', e.message);
+        }
+      }
+
+      // Offline / error fallback → last good disk cache (may be stale, still useful)
+      const disk = memCache || loadDiskCache();
+      if (disk) { memCache = disk; return { byCategory: disk.byCategory, fromCache: true, online: false }; }
+      return { byCategory: Object.fromEntries(CATEGORIES.map(c => [c, []])), fromCache: true, online: false };
+    },
+
+    async counts() {
+      const { byCategory } = await this.getAll();
+      const out = {};
+      CATEGORIES.forEach(c => { out[c] = (byCategory[c] || []).length; });
+      return out;
+    },
+
+    /** Flat list of all docs across categories, for search. */
+    async allDocs() {
+      const { byCategory } = await this.getAll();
+      return CATEGORIES.flatMap(c => (byCategory[c] || []).map(d => ({ ...d, category: d.category || c })));
+    },
+
+    /** Direct write used by the Admin upload form. Requires Firestore rules
+     *  to grant write only when request.auth.token.admin === true. */
+    async publish(category, doc) {
+      const db = FirebaseService.db();
+      if (!db) throw new Error('NO_DB');
+      if (!CATEGORIES.includes(category)) throw new Error('BAD_CATEGORY');
+      const payload = {
+        title: doc.title,
+        content: doc.content,
+        sourceUrl: doc.sourceUrl || '',
+        category,
+        updatedAt: new Date().toISOString(),
+        confidenceScore: doc.confidenceScore ?? 90,
+        contentHash: AdminUtils.hash(doc.title + '|' + doc.content),
+      };
+      await db.collection(category).add(payload);
+      memCache = null; // bust cache so the new doc is searchable immediately
+      return payload;
+    }
+  };
+})();
+
+
+/* =========================================================
+   MODULE: SearchService — Phase 4
+   searchKnowledgeBase(query): keyword + fuzzy match across
+   title/content/category, returns ranked results with a
+   0–100 confidence score.
+   ========================================================= */
+const SearchService = (() => {
+  const STOPWORDS = new Set(['the','is','are','a','an','of','for','to','in','on','what','when','how','do','does','i','my','please','kya','hai','ka','ke','ki','ko','se','mein','kab','kaise']);
+
+  function tokenize(text) {
+    return String(text).toLowerCase()
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .split(/\s+/)
+      .filter(t => t.length > 1 && !STOPWORDS.has(t));
+  }
+
+  // Levenshtein distance, capped early for speed — only used on short token lists.
+  function editDistance(a, b) {
+    if (Math.abs(a.length - b.length) > 2) return 99; // cheap reject
+    const dp = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+    for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        dp[i][j] = a[i - 1] === b[j - 1]
+          ? dp[i - 1][j - 1]
+          : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+    return dp[a.length][b.length];
+  }
+
+  function fuzzyHit(token, docTokens) {
+    return docTokens.some(dt => dt.length >= 4 && editDistance(token, dt) <= 1);
+  }
+
+  function scoreDoc(queryTokens, doc) {
+    const titleTokens = tokenize(doc.title || '');
+    const contentTokens = tokenize(doc.content || '');
+    const categoryTokens = tokenize(doc.category || '');
+    let score = 0;
+    let exactHits = 0;
+    queryTokens.forEach(qt => {
+      if (titleTokens.includes(qt)) { score += 3; exactHits++; }
+      else if (categoryTokens.includes(qt)) { score += 2; exactHits++; }
+      else if (contentTokens.includes(qt)) { score += 1; exactHits++; }
+      else if (fuzzyHit(qt, titleTokens) || fuzzyHit(qt, contentTokens)) { score += 0.6; }
+    });
+    return { score, exactHits };
+  }
+
+  return {
+    /** docs: flat array from KnowledgeBaseService.allDocs() */
+    rank(query, docs, topN = 3) {
+      const qTokens = tokenize(query);
+      if (!qTokens.length || !docs.length) return [];
+      const scored = docs.map(doc => {
+        const { score, exactHits } = scoreDoc(qTokens, doc);
+        return { doc, score, exactHits };
+      }).filter(s => s.score > 0);
+
+      scored.sort((a, b) => b.score - a.score);
+      const maxPossible = qTokens.length * 3;
+      return scored.slice(0, topN).map(s => {
+        const coverage = s.exactHits / qTokens.length;            // how much of the query matched
+        const strength = Math.min(1, s.score / maxPossible);       // how strongly it matched
+        const confidence = Math.round(Math.min(97, 35 + coverage * 40 + strength * 25));
+        return {
+          ...s.doc,
+          confidence,
+          matchScore: s.score,
+        };
+      });
+    },
+
+    async searchKnowledgeBase(query, topN = 3) {
+      const docs = await KnowledgeBaseService.allDocs();
+      return this.rank(query, docs, topN);
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: AnalyticsService — Phase 8
+   Tracks: most-asked questions, most-accessed categories,
+   KB vs AI usage, failed queries.
+   Firestore-backed with a localStorage queue fallback so
+   nothing is lost offline (flushed opportunistically).
+   ========================================================= */
+const AnalyticsService = (() => {
+  const QUEUE_KEY = 'cl_analytics_queue';
+  const LOCAL_SUMMARY_KEY = 'cl_analytics_local_summary';
+
+  function readQueue() { try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch (e) { return []; } }
+  function writeQueue(q) { try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q.slice(-200))); } catch (e) {} }
+  function withTimeout(p, ms) { return Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('timeout')), ms))]); }
+
+  function bumpLocalSummary(source, category, failed) {
+    let s;
+    try { s = JSON.parse(localStorage.getItem(LOCAL_SUMMARY_KEY) || '{}'); } catch (e) { s = {}; }
+    s.total = (s.total || 0) + 1;
+    s[source + 'Count'] = (s[source + 'Count'] || 0) + 1;
+    if (failed) s.failedCount = (s.failedCount || 0) + 1;
+    s.categories = s.categories || {};
+    if (category) s.categories[category] = (s.categories[category] || 0) + 1;
+    localStorage.setItem(LOCAL_SUMMARY_KEY, JSON.stringify(s));
+    return s;
+  }
+
+  async function writeFirestore(entry) {
+    const db = FirebaseService.db();
+    if (!db) throw new Error('NO_DB');
+    const batch = db.batch();
+    const qRef = db.collection('analytics_queries').doc();
+    batch.set(qRef, { ...entry, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+
+    const summaryRef = db.collection('analytics_usage').doc('summary');
+    batch.set(summaryRef, {
+      total: firebase.firestore.FieldValue.increment(1),
+      [entry.source + 'Count']: firebase.firestore.FieldValue.increment(1),
+      ...(entry.failed ? { failedCount: firebase.firestore.FieldValue.increment(1) } : {}),
+    }, { merge: true });
+
+    if (entry.category) {
+      const catRef = db.collection('analytics_categories').doc(entry.category);
+      batch.set(catRef, { count: firebase.firestore.FieldValue.increment(1), category: entry.category }, { merge: true });
+    }
+
+    const topRef = db.collection('analytics_top_queries').doc(AdminUtils.hash(entry.query.toLowerCase().trim()));
+    batch.set(topRef, {
+      text: entry.query,
+      count: firebase.firestore.FieldValue.increment(1),
+      lastAskedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    if (entry.failed) {
+      const failRef = db.collection('analytics_failed').doc();
+      batch.set(failRef, { query: entry.query, lang: entry.lang, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    await batch.commit();
+  }
+
+  async function flushQueue() {
+    if (!FirebaseService.isReady()) return;
+    const queue = readQueue();
+    if (!queue.length) return;
+    const remaining = [];
+    for (const entry of queue) {
+      try { await writeFirestore(entry); } catch (e) { remaining.push(entry); }
+    }
+    writeQueue(remaining);
+  }
+
+  return {
+    /** source: 'kb' | 'faq' | 'ai' | 'demo'. failed = true when nothing useful was found at all. */
+    async logQuery({ query, lang, category = null, source, failed = false }) {
+      const entry = { query, lang, category, source, failed };
+      bumpLocalSummary(source, category, failed);
+      if (FirebaseService.isReady()) {
+        try { await writeFirestore(entry); return; } catch (e) { /* fall through to queue */ }
+      }
+      const q = readQueue(); q.push(entry); writeQueue(q);
+    },
+
+    async flush() { return flushQueue(); },
+
+    /** Best-effort usage summary for the Admin Panel. Combines Firestore
+     *  (if reachable) with the local queue so the panel is never empty. */
+    async getSummary() {
+      let local = {};
+      try { local = JSON.parse(localStorage.getItem(LOCAL_SUMMARY_KEY) || '{}'); } catch (e) {}
+      if (!FirebaseService.isReady()) return { ...local, source: 'local' };
+      try {
+        const db = FirebaseService.db();
+        const snap = await withTimeout(db.collection('analytics_usage').doc('summary').get(), 5000);
+        const remote = snap.exists ? snap.data() : {};
+        return { ...local, ...remote, source: 'firestore' };
+      } catch (e) {
+        return { ...local, source: 'local' };
+      }
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: RAGService — Phase 3, 5 & 6
+   Retrieval-Augmented Generation orchestrator.
+   Order is fixed per spec: Knowledge Base is ALWAYS searched
+   before Gemini is ever consulted.
+
+     User Question
+        ↓
+     searchKnowledgeBase()           (Firestore — official data)
+        ↓ good match (≥ KB_THRESHOLD)         ↓ no good match
+     Gemini + retrieved context        local FAQ cache (offline-safe)
+     → source: "kb"                       ↓ still nothing
+                                       Gemini general knowledge (if AI Mode on)
+                                       → source: "ai"
+                                            ↓ nothing available
+                                       source: "none" → caller uses canned demo reply
+   ========================================================= */
+const RAGService = (() => {
+  const KB_THRESHOLD = 45; // confidence (0–100) required to treat a KB hit as authoritative
+
+  return {
+    KB_THRESHOLD,
+
+    /** Never throws. Always resolves to { text, source, citation, category }.
+     *  source: 'kb' | 'faq' | 'ai' | 'none'.
+     *  onState(stateKey) is an optional progress callback for loading UI:
+     *  'searching' → 'composing' (KB hit, asking Gemini to phrase it) → 'connecting' (general AI). */
+    async resolve(userText, lang, aiModeEnabled, onState = () => {}) {
+      // 1) Always search the official Knowledge Base first.
+      onState('searching');
+      let kbResults = [];
+      try { kbResults = await SearchService.searchKnowledgeBase(userText, 3); }
+      catch (e) { console.warn('KB search failed:', e.message); }
+
+      const top = kbResults[0];
+
+      if (top && top.confidence >= KB_THRESHOLD) {
+        const citation = {
+          title: top.title,
+          sourceUrl: top.sourceUrl || '',
+          updatedAt: top.updatedAt || '',
+          confidence: top.confidence,
+        };
+        // Try to have Gemini phrase/translate the official content; if Gemini
+        // is unavailable, fall back to the raw KB content — still authoritative.
+        if (aiModeEnabled && GeminiService.hasKey()) {
+          onState('composing');
+          try {
+            const text = await GeminiService.callWithContext(userText, kbResults);
+            await AnalyticsService.logQuery({ query: userText, lang, category: top.category, source: 'kb' });
+            return { text, source: 'kb', citation, category: top.category };
+          } catch (e) { /* fall through to raw KB content below */ }
+        }
+        await AnalyticsService.logQuery({ query: userText, lang, category: top.category, source: 'kb' });
+        return { text: top.content, source: 'kb', citation, category: top.category };
+      }
+
+      // 2) No confident official match → bundled offline FAQ cache.
+      const faqMatch = FAQ.match(userText);
+      if (faqMatch) {
+        await AnalyticsService.logQuery({ query: userText, lang, category: faqMatch.category, source: 'faq' });
+        return { text: FAQ.getAnswer(faqMatch, lang), source: 'faq', citation: null, category: faqMatch.category };
+      }
+
+      // 3) AI Mode → Gemini general knowledge (clearly badged as AI Generated).
+      if (aiModeEnabled && GeminiService.hasKey()) {
+        onState('connecting');
+        try {
+          const text = await GeminiService.callWithContext(userText, []); // empty context → general knowledge, still college-aware system prompt
+          await AnalyticsService.logQuery({ query: userText, lang, source: 'ai' });
+          return { text, source: 'ai', citation: null, category: null };
+        } catch (e) {
+          await AnalyticsService.logQuery({ query: userText, lang, source: 'ai', failed: true });
+          throw e; // let caller show the proper Gemini error message
+        }
+      }
+
+      // 4) Nothing available — caller falls back to its canned demo pool.
+      await AnalyticsService.logQuery({ query: userText, lang, source: 'demo', failed: true });
+      return { text: null, source: 'none', citation: null, category: null };
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: AdminPanel — Phase 7
+   Lightweight admin UI wired into the existing Settings screen.
+   Real write protection happens at the Firestore rules layer
+   (request.auth.token.admin === true) — see firestore.rules.
+   When Firebase isn't configured yet, a local passphrase lets
+   you demo the UI; it does NOT grant any real database access.
+   ========================================================= */
+const AdminPanel = (() => {
+  const DEMO_PASSPHRASE = 'sih-demo-admin'; // demo-only UI gate, see note above
+  const CATEGORY_LABEL = { notices: 'Notices', exams: 'Exams', fees: 'Fees', scholarships: 'Scholarships', hostel: 'Hostel', placements: 'Placements', academics: 'Academics' };
+
+  let els = {};
+  function cacheEls() {
+    ['adminPanel','adminLocked','adminUnlocked','adminEmail','adminPass','adminLoginBtn','adminLoginMsg',
+     'adminLogoutBtn','adminWho','syncNowBtn','syncBtnLabel','syncResultMsg',
+     'uploadCategory','uploadTitle','uploadContent','uploadSourceUrl','uploadPublishBtn','uploadMsg',
+     'analyticsGrid','kbStatusDot','kbStatusText','kbStatsGrid','kbLastSync','kbRefreshBtn']
+      .forEach(id => { els[id] = document.getElementById(id); });
+  }
+
+  function showUnlocked(label) {
+    els.adminLocked.classList.add('hidden');
+    els.adminUnlocked.classList.remove('hidden');
+    els.adminWho.textContent = label;
+    renderAnalytics();
+  }
+  function showLocked() {
+    els.adminLocked.classList.remove('hidden');
+    els.adminUnlocked.classList.add('hidden');
+  }
+
+  async function handleLogin() {
+    const email = els.adminEmail.value.trim();
+    const pass = els.adminPass.value;
+    els.adminLoginMsg.textContent = 'Signing in…';
+    try {
+      if (FirebaseService.isReady()) {
+        await AuthService.adminSignIn(email, pass);
+        els.adminLoginMsg.textContent = '';
+        showUnlocked(email);
+      } else {
+        // No Firebase project configured yet — demo-only local gate.
+        if (pass === DEMO_PASSPHRASE) {
+          localStorage.setItem('cl_demo_admin', 'true');
+          els.adminLoginMsg.textContent = '';
+          showUnlocked('Demo Admin (local — connect Firebase for real access control)');
+        } else {
+          throw new Error('NOT_ADMIN');
+        }
+      }
+    } catch (e) {
+      els.adminLoginMsg.textContent = e.message === 'NOT_ADMIN'
+        ? 'Not recognized as an admin account.'
+        : e.message === 'AUTH_NOT_CONFIGURED'
+          ? 'Connect Firebase Auth first (see ARCHITECTURE.md).'
+          : 'Sign-in failed: ' + e.message;
+    }
+  }
+
+  async function handleLogout() {
+    localStorage.removeItem('cl_demo_admin');
+    if (FirebaseService.isReady()) await AuthService.signOutAdmin();
+    showLocked();
+  }
+
+  async function runSync() {
+    const fns = FirebaseService.functions();
+    if (!fns) {
+      els.syncResultMsg.textContent = 'Cloud Functions not connected — deploy functions/index.js and set FUNCTIONS_REGION (see ARCHITECTURE.md).';
+      return;
+    }
+    els.syncNowBtn.disabled = true;
+    els.syncBtnLabel.innerHTML = '<span class="spinner"></span> Syncing…';
+    els.syncResultMsg.textContent = '';
+    try {
+      const callable = fns.httpsCallable('syncCollegeWebsite');
+      const res = await callable({});
+      const { added = 0, updated = 0, skipped = 0, errors = 0 } = res.data || {};
+      els.syncResultMsg.textContent = `✓ ${added} added · ${updated} updated · ${skipped} duplicates skipped${errors ? ` · ${errors} errors` : ''}`;
+      await refreshKbStatus(true);
+    } catch (e) {
+      els.syncResultMsg.textContent = 'Sync failed: ' + (e.message || 'unknown error');
+    } finally {
+      els.syncNowBtn.disabled = false;
+      els.syncBtnLabel.textContent = '🔄 Sync Website Now';
+    }
+  }
+
+  async function handlePublish() {
+    const category = els.uploadCategory.value;
+    const title = els.uploadTitle.value.trim();
+    const content = els.uploadContent.value.trim();
+    const sourceUrl = els.uploadSourceUrl.value.trim();
+    if (!title || !content) { els.uploadMsg.textContent = 'Title and content are required.'; return; }
+
+    els.uploadPublishBtn.disabled = true;
+    els.uploadMsg.textContent = 'Publishing…';
+    try {
+      await KnowledgeBaseService.publish(category, { title, content, sourceUrl, confidenceScore: 95 });
+      els.uploadMsg.textContent = '✓ Published to ' + CATEGORY_LABEL[category];
+      els.uploadTitle.value = ''; els.uploadContent.value = ''; els.uploadSourceUrl.value = '';
+      await refreshKbStatus(true);
+    } catch (e) {
+      els.uploadMsg.textContent = e.message === 'NO_DB'
+        ? 'Connect Firebase first — see ARCHITECTURE.md.'
+        : 'Publish failed (check Firestore rules / admin claim): ' + e.message;
+    } finally {
+      els.uploadPublishBtn.disabled = false;
+    }
+  }
+
+  async function refreshKbStatus(force = false) {
+    const online = KnowledgeBaseService.isOnline();
+    els.kbStatusDot.classList.toggle('online', online);
+    els.kbStatusDot.classList.toggle('offline', !online);
+    els.kbStatusText.textContent = online ? 'Connected to Firestore' : 'Offline — using cached data';
+
+    const counts = await KnowledgeBaseService.counts();
+    els.kbStatsGrid.innerHTML = '';
+    Object.entries(counts).forEach(([cat, n]) => {
+      const card = document.createElement('div');
+      card.className = 'admin-stat';
+      card.innerHTML = `<p class="font-display font-bold text-secondary text-[15px]">${n}</p><p class="text-[9px] text-slate-500 mt-0.5">${CATEGORY_LABEL[cat] || cat}</p>`;
+      els.kbStatsGrid.appendChild(card);
+    });
+    const last = KnowledgeBaseService.lastSyncAt();
+    els.kbLastSync.textContent = 'Last sync: ' + (last ? AdminUtils.timeAgo(last) : 'never');
+  }
+
+  async function renderAnalytics() {
+    const s = await AnalyticsService.getSummary();
+    const total = s.total || 0;
+    const pct = (n) => total ? Math.round((n / total) * 100) : 0;
+    const stats = [
+      ['Total queries', total],
+      ['Official data', pct(s.kbCount || 0) + '%'],
+      ['AI generated', pct(s.aiCount || 0) + '%'],
+      ['Failed queries', s.failedCount || 0],
+    ];
+    els.analyticsGrid.innerHTML = '';
+    stats.forEach(([label, val]) => {
+      const card = document.createElement('div');
+      card.className = 'admin-stat';
+      card.innerHTML = `<p class="font-display font-bold text-secondary text-[15px]">${val}</p><p class="text-[9px] text-slate-500 mt-0.5">${label}</p>`;
+      els.analyticsGrid.appendChild(card);
+    });
+  }
+
+  return {
+    init() {
+      cacheEls();
+      if (!els.adminLocked) return; // settings screen not present
+
+      els.adminLoginBtn?.addEventListener('click', handleLogin);
+      els.adminLogoutBtn?.addEventListener('click', handleLogout);
+      els.syncNowBtn?.addEventListener('click', runSync);
+      els.uploadPublishBtn?.addEventListener('click', handlePublish);
+      els.kbRefreshBtn?.addEventListener('click', () => refreshKbStatus(true));
+
+      AuthService.onChange(({ isAdmin }) => {
+        if (isAdmin) showUnlocked(AuthService.uid()); else if (localStorage.getItem('cl_demo_admin') !== 'true') showLocked();
+      });
+      if (localStorage.getItem('cl_demo_admin') === 'true' && !FirebaseService.isReady()) {
+        showUnlocked('Demo Admin (local)');
+      }
+
+      refreshKbStatus();
+      AnalyticsService.flush();
+    },
+    refresh() { refreshKbStatus(true); }
+  };
+})();
+
+/* =========================================================
+   MODULE: VoiceService — Phase 4
+   - Lang-synced recognition
+   - Error messages for each error type
+   - Best voice auto-selection
+   ========================================================= */
+const VoiceService = (() => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let voices = [];
+  const langBCP = { en: 'en-IN', hi: 'hi-IN', ha: 'hi-IN' };
+
+  // Preload voices
+  function loadVoices() {
+    voices = window.speechSynthesis?.getVoices() || [];
+    if (!voices.length && window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = () => { voices = window.speechSynthesis.getVoices(); };
+    }
+  }
+  loadVoices();
+
+  function bestVoice(bcp47) {
+    // Prefer exact locale match, then language match, then any available
+    return voices.find(v => v.lang === bcp47)
+      || voices.find(v => v.lang.startsWith(bcp47.split('-')[0]))
+      || voices[0]
+      || null;
+  }
+
+  const errorMessages = {
+    'not-allowed':   'Microphone permission denied. Please allow microphone access in your browser.',
+    'no-speech':     'No speech detected. Please try again.',
+    'audio-capture': 'Microphone not available. Please check your device.',
+    'network':       'Network error during voice recognition. Please check your connection.',
+    'aborted':       'Voice recognition stopped.',
+    'service-not-allowed': 'Voice service not allowed. Please use HTTPS.',
+  };
+
+  return {
+    isAvailable() { return !!SR; },
+
+    init(onResult, onError, onEnd) {
+      if (!SR) return;
+      recognition = new SR();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.onresult = (e) => onResult(e.results[0][0].transcript);
+      recognition.onerror = (e) => onError(errorMessages[e.error] || 'Voice error: ' + e.error);
+      recognition.onend = onEnd;
+    },
+
+    start(lang) {
+      if (!recognition) return;
+      recognition.lang = langBCP[lang] || 'hi-IN';
+      try { recognition.start(); } catch (e) {}
+    },
+
+    stop() {
+      if (!recognition) return;
+      try { recognition.stop(); } catch (e) {}
+    },
+
+    speak(text, lang) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      const bcp = langBCP[lang] || 'hi-IN';
+      utter.lang = bcp;
+      utter.rate = 0.92;
+      utter.pitch = 1;
+      const v = bestVoice(bcp);
+      if (v) utter.voice = v;
+      window.speechSynthesis.speak(utter);
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: UI — clock, nav, modals (Phase 5 & 6)
+   ========================================================= */
+const UI = (() => {
+  let clockInterval = null;
+
+  function updateClock() {
+    const el = document.getElementById('clock');
+    if (!el) return;
+    const now = new Date();
+    let h = now.getHours() % 12 || 12;
+    const m = now.getMinutes().toString().padStart(2, '0');
+    el.textContent = `${h}:${m}`;
+  }
+
+  return {
+    initClock() {
+      updateClock();
+      clockInterval = setInterval(updateClock, 30000);
+    },
+
+    initNav(onNavigate) {
+      const screens = document.querySelectorAll('.screen');
+      const navItems = document.querySelectorAll('.nav-item');
+
+      function activate(name) {
+        screens.forEach(s => s.classList.toggle('active', s.dataset.screen === name));
+        navItems.forEach(n => {
+          const active = n.dataset.nav === name;
+          n.classList.toggle('text-primary', active);
+          n.classList.toggle('text-slate-400', !active);
+          n.setAttribute('aria-current', active ? 'page' : 'false');
+          const dot = n.querySelector('.nav-dot');
+          if (dot) { dot.classList.toggle('opacity-100', active); dot.classList.toggle('opacity-0', !active); }
+        });
+        onNavigate(name);
+      }
+
+      navItems.forEach(n => n.addEventListener('click', () => activate(n.dataset.nav)));
+      activate('home');
+      window._goToScreen = activate; // expose globally
+      window.goToScreen = activate;  // alias — pre-existing onclick="goToScreen(...)" handlers on Home screen call this name
+    },
+
+    initModal() {
+      const modal = document.getElementById('demoModal');
+      document.getElementById('watchDemoBtn')?.addEventListener('click', () => {
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        document.getElementById('closeDemoModal')?.focus();
+      });
+      document.getElementById('closeDemoModal')?.addEventListener('click', () => {
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+      });
+      // Close on backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      });
+      // Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+      });
+    },
+
+    initToggles(excludeIds = []) {
+      document.querySelectorAll('[role="switch"]').forEach(t => {
+        if (excludeIds.includes(t.id)) return;
+        const toggle = () => {
+          t.classList.toggle('on');
+          t.setAttribute('aria-checked', t.classList.contains('on') ? 'true' : 'false');
+        };
+        t.addEventListener('click', toggle);
+        t.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      });
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: Chat — Phase 3 (suggested questions, loading states,
+   history restore, context) + Phase 7 (FAQ-first flow)
+   ========================================================= */
+const Chat = (() => {
+  const log = document.getElementById('chatLog');
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSend');
+  const savePill = document.getElementById('savePill');
+  const statusLine = document.getElementById('chatStatusLine');
+
+  let isSending = false;
+  let chatStarted = false;
+  let pendingUserText = null;
+  let autoSaveEnabled = JSON.parse(localStorage.getItem('cl_autosave') || 'false');
+  let aiModeEnabled = JSON.parse(localStorage.getItem('cl_ai_mode') || 'false');
+  let voiceEnabled = true;
+  let currentLang = 'en';
+
+  const langPlaceholders = {
+    en: 'Type your question in English…',
+    hi: 'हिंदी में टाइप करें…',
+    ha: 'हाडोती में लिखो…',
+  };
+
+  const cannedResponses = {
+    en: ["I couldn't find an official record for that. Try asking about fees, exams, attendance, or scholarships.", "No matching campus information found. You can also reach the admin office at GEC Ajmer for help.", "That's outside what I have right now. Enable Smart Answers in Settings for broader assistance."],
+    hi: ['इस विषय पर कोई आधिकारिक जानकारी नहीं मिली। फीस, परीक्षा या छात्रवृत्ति के बारे में पूछें।', 'माफ करें, यह जानकारी अभी उपलब्ध नहीं है। कॉलेज कार्यालय से संपर्क करें।'],
+    ha: ['इस बारे में जानकारी नहीं मिली। फीस, परीक्षा या हॉस्टल के बारे में पूछो।', 'कॉलेज कार्यालय से पूछो।'],
+  };
+
+  const suggestedQuestions = {
+    en: ['Fees Date', 'Attendance Rules', 'Scholarship Info', 'Exam Form', 'Hostel Fees', 'Library Timing'],
+    hi: ['फीस की तारीख', 'उपस्थिति नियम', 'छात्रवृत्ति जानकारी', 'परीक्षा फॉर्म'],
+    ha: ['फीस री तारीख', 'हाजिरी नियम', 'स्कॉलरशिप जानकारी'],
+  };
+
+  function isDevanagari(text) { return /[\u0900-\u097F]/.test(text); }
+
+  // ---- Typing indicator with phase-aware labels ----
+  const typingStates = {
+    thinking: 'Checking records…',
+    searching: 'Searching official records…',
+    composing: 'Preparing your answer…',
+    connecting: 'Fetching smart answer…',
+    network: 'Slow connection, retrying…',
+  };
+
+  function showTyping(state = 'thinking') {
+    removeTyping();
+    const wrap = document.createElement('div');
+    wrap.className = 'flex flex-col justify-start';
+    wrap.id = 'typingIndicator';
+    const bubble = DOMUtils.el('div', 'bg-white border border-slate-100 rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5 items-center shadow-sm');
+    ['','',''].forEach(() => {
+      const dot = DOMUtils.el('span', 'w-1.5 h-1.5 rounded-full bg-slate-400 typing-dot');
+      bubble.appendChild(dot);
+    });
+    wrap.appendChild(bubble);
+    const label = DOMUtils.el('p', 'typing-label', typingStates[state] || typingStates.thinking);
+    wrap.appendChild(label);
+    log.appendChild(wrap);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function updateTypingState(state) {
+    const label = document.querySelector('.typing-label');
+    if (label) label.textContent = typingStates[state] || '';
+  }
+
+  function removeTyping() {
+    document.getElementById('typingIndicator')?.remove();
+  }
+
+  // ---- Bubble rendering ----
+  const SOURCE_LABEL = {
+    kb:   '✓ Official College Records',
+    faq:  '📋 Campus FAQ',
+    ai:   '✦ Smart Answer',
+    demo: '💡 Sample Response',
+  };
+
+  function confidenceClass(c) {
+    if (c >= 80) return 'confidence-high';
+    if (c >= 50) return 'confidence-mid';
+    return 'confidence-low';
+  }
+
+  function buildCitationCard(citation) {
+    const card = document.createElement('div');
+    card.className = 'citation-card';
+    const titleRow = document.createElement('p');
+    titleRow.className = 'citation-title';
+    titleRow.textContent = citation.title || 'Official Source';
+    card.appendChild(titleRow);
+
+    const row = document.createElement('div');
+    row.className = 'citation-row';
+    const left = document.createElement('span');
+    if (citation.sourceUrl) {
+      const a = document.createElement('a');
+      a.href = citation.sourceUrl; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.className = 'citation-link';
+      a.textContent = 'View source ↗';
+      left.appendChild(a);
+    } else {
+      left.textContent = 'Source: Official college records';
+    }
+    row.appendChild(left);
+
+    const pill = DOMUtils.el('span', `confidence-pill ${confidenceClass(citation.confidence || 0)}`, `${citation.confidence ?? '–'}% confidence`);
+    row.appendChild(pill);
+    card.appendChild(row);
+
+    if (citation.updatedAt) {
+      const updated = document.createElement('p');
+      updated.className = 'mt-1 text-slate-400';
+      updated.textContent = 'Updated: ' + (isNaN(Date.parse(citation.updatedAt)) ? citation.updatedAt : new Date(citation.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }));
+      card.appendChild(updated);
+    }
+    return card;
+  }
+
+  function addBubble(text, who, source = null, citation = null) {
+    const deva = isDevanagari(text);
+    const { wrap, bubble } = DOMUtils.makeBubble(text, who, deva);
+    // Attach source label (+ citation card for KB answers) for bot messages
+    if (who === 'bot' && source) {
+      const wrapCol = document.createElement('div');
+      wrapCol.className = 'flex flex-col items-start';
+      wrapCol.appendChild(wrap);
+      const lbl = DOMUtils.el('span', `source-label source-${source}`, SOURCE_LABEL[source] || SOURCE_LABEL.demo);
+      wrapCol.appendChild(lbl);
+      if (source === 'kb' && citation) wrapCol.appendChild(buildCitationCard(citation));
+      log.appendChild(wrapCol);
+    } else {
+      log.appendChild(wrap);
+    }
+    log.scrollTop = log.scrollHeight;
+    return bubble;
+  }
+
+  // ---- Save pill ----
+  function setSavePill(state, text) {
+    if (!savePill) return;
+    savePill.className = `save-pill ${state}`;
+    savePill.textContent = text;
+  }
+
+  async function persistEntry(userText, botText) {
+    if (!autoSaveEnabled) return;
+    setSavePill('saving', '⏳ Saving…');
+    const entry = { userText, botText, lang: currentLang, ts: Date.now() };
+    const where = await FirebaseService.save(entry);
+    setSavePill('saved', '✓ Saved');
+    setTimeout(() => setSavePill(autoSaveEnabled ? 'saved' : 'off', autoSaveEnabled ? '☁ On' : '☁ Off'), 2500);
+    _ = where; // suppress unused warning
+  }
+
+  // ---- Core send logic: Knowledge Base → FAQ cache → Gemini → canned (Phase 3) ----
+  async function processUserMessage(userText) {
+    if (isSending) return;
+    isSending = true;
+    sendBtn.disabled = true;
+
+    // Hide welcome chips on first real user message
+    hideWelcomeChips();
+    // Hide the suggest strip once conversation starts
+    const strip = document.getElementById('suggestStrip');
+    if (strip) strip.style.display = 'none';
+
+    addBubble(userText, 'user');
+    showTyping('searching');
+
+    try {
+      const result = await RAGService.resolve(userText, currentLang, aiModeEnabled, (state) => updateTypingState(state));
+
+      if (result.source === 'none') {
+        // Nothing official, no FAQ match, AI Mode off/no key → canned demo reply (Phase 10 graceful fallback)
+        await new Promise(r => setTimeout(r, 500 + Math.random() * 300));
+        removeTyping();
+        const pool = cannedResponses[currentLang] || cannedResponses.en;
+        const reply = pool[Math.floor(Math.random() * pool.length)];
+        addBubble(reply, 'bot', 'demo');
+        if (voiceEnabled) VoiceService.speak(reply, currentLang);
+        await persistEntry(userText, reply);
+      } else {
+        removeTyping();
+        addBubble(result.text, 'bot', result.source, result.citation);
+        if (voiceEnabled) VoiceService.speak(result.text, currentLang);
+        await persistEntry(userText, result.text);
+      }
+    } catch (err) {
+      removeTyping();
+      const errMsg = GeminiService.errorMessage(err, currentLang);
+      addBubble(errMsg, 'bot', 'demo');
+      console.warn('RAG/Gemini error:', err.message);
+    }
+
+    isSending = false;
+    sendBtn.disabled = false;
+  }
+
+  // ---- Welcome message (replaces scripted demo convo) ----
+  function showWelcome() {
+    // Welcome bubble
+    const welcomeWrap = document.createElement('div');
+    welcomeWrap.className = 'chat-bubble-in flex justify-start';
+    welcomeWrap.id = 'welcomeMsg';
+    const bubble = document.createElement('div');
+    bubble.className = 'max-w-[88%] bg-white text-secondary text-[13px] rounded-2xl rounded-bl-md px-4 py-3 leading-relaxed shadow-sm border border-slate-100';
+
+    const greeting = DOMUtils.el('p', 'font-semibold text-secondary text-[14px] mb-1', 'Hi, I\'m CampusBuddy 👋');
+    const sub = DOMUtils.el('p', 'text-[12px] text-slate-600 leading-relaxed', 'I can help with campus questions. Ask me about:');
+    const topics = DOMUtils.el('p', 'text-[12px] text-slate-500 mt-1.5 leading-relaxed', '• Fees & Payments  • Exam Schedules\n• Scholarships  • Hostel Information\n• Attendance Rules  • Placements');
+    topics.style.whiteSpace = 'pre-line';
+    bubble.appendChild(greeting);
+    bubble.appendChild(sub);
+    bubble.appendChild(topics);
+    welcomeWrap.appendChild(bubble);
+    log.appendChild(welcomeWrap);
+
+    // Suggestion chips inside chat log (shown before first message)
+    const chipWrap = document.createElement('div');
+    chipWrap.id = 'welcomeChips';
+    chipWrap.className = 'chat-bubble-in flex flex-wrap gap-2 mt-1 mb-1 justify-start';
+    const chips = ['Exam Schedule', 'Fee Structure', 'Scholarships', 'Hostel Fees', 'Attendance Rules', 'Placement Info'];
+    chips.forEach(label => {
+      const btn = document.createElement('button');
+      btn.className = 'suggest-chip';
+      btn.textContent = label;
+      btn.setAttribute('aria-label', `Ask: ${label}`);
+      btn.addEventListener('click', () => {
+        hideWelcomeChips();
+        input.value = label;
+        handleSend();
+      });
+      chipWrap.appendChild(btn);
+    });
+    log.appendChild(chipWrap);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function hideWelcomeChips() {
+    document.getElementById('welcomeChips')?.remove();
+  }
+
+  // ---- Suggested questions strip (top of chat, language-aware) ----
+  function renderSuggestedQuestions() {
+    const strip = document.getElementById('suggestStrip');
+    if (!strip) return;
+    strip.querySelectorAll('.suggest-chip').forEach(c => c.remove());
+    // Only show top-strip chips if chat hasn't started (welcomeChips handle pre-conversation)
+    if (chatStarted) {
+      strip.style.display = 'none';
+      return;
+    }
+    strip.style.display = 'flex';
+    const questions = suggestedQuestions[currentLang] || suggestedQuestions.en;
+    const frag = document.createDocumentFragment();
+    questions.forEach(q => {
+      const btn = document.createElement('button');
+      btn.className = 'suggest-chip';
+      btn.textContent = q;
+      btn.setAttribute('aria-label', `Ask: ${q}`);
+      btn.addEventListener('click', () => {
+        hideWelcomeChips();
+        input.value = q;
+        handleSend();
+      });
+      frag.appendChild(btn);
+    });
+    strip.appendChild(frag);
+  }
+
+  // ---- Language chip UI ----
+  function setLang(lang) {
+    currentLang = lang;
+    input.placeholder = langPlaceholders[lang] || langPlaceholders.en;
+    ['EN','HI','HA'].forEach(code => {
+      const chip = document.getElementById(`langChip${code}`);
+      if (!chip) return;
+      const active = lang.toUpperCase() === code;
+      chip.style.background = active ? '#2563EB' : '';
+      chip.style.color = active ? '#fff' : '';
+      chip.style.borderColor = active ? '#2563EB' : '';
+      chip.setAttribute('aria-pressed', String(active));
+    });
+    renderSuggestedQuestions();
+  }
+  window.setLang = setLang; // expose for inline onclick
+
+  function handleSend() {
+    const val = input.value.trim();
+    if (!val || isSending) return;
+    input.value = '';
+    processUserMessage(val);
+  }
+
+  return {
+    init() {
+      sendBtn.addEventListener('click', handleSend);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
+      setLang('en');
+      renderSuggestedQuestions();
+      showWelcome();
+    },
+
+    startDemo() {
+      if (chatStarted) return;
+      chatStarted = true;
+      // No scripted messages — chat is already initialized with welcome message
+    },
+
+    // Called from Voice module
+    handleVoiceInput(transcript) {
+      processUserMessage(transcript);
+    },
+
+    setAutoSave(val) {
+      autoSaveEnabled = val;
+      setSavePill(val ? 'saved' : 'off', val ? '☁ On' : '☁ Off');
+    },
+
+    setAIMode(val) { aiModeEnabled = val; },
+    setVoiceEnabled(val) { voiceEnabled = val; },
+    setLang,
+
+    // Load a history entry into chat (Phase 3)
+    loadEntry(entry) {
+      log.innerHTML = ''; // clear current chat
+      addBubble(entry.userText, 'user');
+      addBubble(entry.botText, 'bot', 'faq');
+      log.scrollTop = log.scrollHeight;
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: History — Phase 3 (dynamic rendering + restore)
+   ========================================================= */
+const History = (() => {
+  function timeLabel(ts) {
+    const diff = Date.now() - ts;
+    if (diff < 86400000) return 'Today';
+    if (diff < 172800000) return 'Yesterday';
+    return new Date(ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  }
+
+  return {
+    async render() {
+      const list = document.getElementById('historyList');
+      const empty = document.getElementById('historyEmpty');
+      if (!list) return;
+
+      list.querySelectorAll('.history-card').forEach(e => e.remove());
+
+      const entries = await FirebaseService.load();
+      if (!entries.length) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+
+      const frag = document.createDocumentFragment();
+      entries.forEach((entry, i) => {
+        const deva = /[\u0900-\u097F]/.test(entry.userText);
+        const card = document.createElement('div');
+        card.className = 'history-card card-tap pop-in bg-white border border-slate-200 rounded-2xl p-4 shadow-sm';
+        card.style.animationDelay = `${i * 0.045}s`;
+        card.setAttribute('role', 'listitem');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', `Conversation: ${entry.userText}`);
+
+        // Header row
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between';
+        const q = DOMUtils.el('p', `font-semibold text-[13px] text-secondary truncate max-w-[70%]${deva ? ' font-deva' : ''}`, entry.userText);
+        const ts = DOMUtils.el('span', 'text-[10px] text-slate-400 shrink-0 ml-2', timeLabel(entry.ts));
+        row.appendChild(q); row.appendChild(ts);
+
+        // Preview
+        const preview = DOMUtils.el('p', `text-[12px] text-slate-500 mt-1.5 line-clamp-1${deva ? ' font-deva' : ''}`, entry.botText);
+
+        card.appendChild(row);
+        card.appendChild(preview);
+
+        // Click or Enter → restore chat
+        const open = () => { Chat.loadEntry(entry); window._goToScreen('chat'); };
+        card.addEventListener('click', open);
+        card.addEventListener('keydown', e => { if (e.key === 'Enter') open(); });
+
+        frag.appendChild(card);
+      });
+      list.appendChild(frag);
+    },
+
+    async clear() {
+      if (!confirm('Clear all saved history?')) return;
+      await FirebaseService.clear();
+      this.render();
+    }
+  };
+})();
+
+// Expose for inline HTML onclick
+window.clearHistory = () => History.clear();
+
+/* =========================================================
+   MODULE: Voice Screen — Phase 4
+   ========================================================= */
+const VoiceScreen = (() => {
+  const micBtn = document.getElementById('micBtn');
+  const rings = ['ring1','ring2','ring3'].map(id => document.getElementById(id));
+  const waveBars = document.querySelectorAll('.wave-bar');
+  const statusText = document.getElementById('voiceStatusText');
+  const subText = document.getElementById('voiceSubText');
+
+  let voiceState = 'idle';
+
+  function setState(state, label, sub) {
+    voiceState = state;
+    rings.forEach(r => r && (r.style.display = state === 'listening' ? 'block' : 'none'));
+    micBtn.classList.toggle('listening', state === 'listening');
+    micBtn.setAttribute('aria-label', state === 'listening' ? 'Tap to stop listening' : 'Tap to start speaking');
+    waveBars.forEach(b => {
+      b.classList.toggle('idle', state === 'idle');
+      b.classList.toggle('wave-listening', state !== 'idle');
+      if (state !== 'idle') b.style.animationDuration = (0.55 + Math.random() * 0.7) + 's';
+    });
+    if (statusText) statusText.textContent = label;
+    if (subText) subText.textContent = sub;
+  }
+
+  return {
+    init(currentLangGetter) {
+      VoiceService.init(
+        // onResult
+        async (transcript) => {
+          setState('speaking', `"${transcript.slice(0,28)}${transcript.length>28?'…':''}"`, 'Processing…');
+          Chat.handleVoiceInput(transcript);
+          setTimeout(() => setState('idle', 'Tap to speak', 'Hindi, English & Hadoti supported'), 1500);
+        },
+        // onError
+        (msg) => {
+          setState('idle', 'Tap to speak', msg);
+          setTimeout(() => { if (subText) subText.textContent = 'Hindi, English & Hadoti supported'; }, 3000);
+        },
+        // onEnd
+        () => { if (voiceState === 'listening') setState('idle', 'Tap to speak', 'Hindi, English & Hadoti supported'); }
+      );
+
+      micBtn.addEventListener('click', () => {
+        if (voiceState === 'idle') {
+          setState('listening', 'Listening…', 'Speak now in any language');
+          if (VoiceService.isAvailable()) {
+            VoiceService.start(currentLangGetter());
+          } else {
+            // Demo fallback
+            setTimeout(() => {
+              setState('speaking', 'Speaking…', 'Playing response aloud');
+              VoiceService.speak('यह एक डेमो जवाब है।', 'hi');
+              setTimeout(() => setState('idle', 'Tap to speak', 'Hindi, English & Hadoti supported'), 2500);
+            }, 2200);
+          }
+        } else {
+          VoiceService.stop();
+          setState('idle', 'Tap to speak', 'Hindi, English & Hadoti supported');
+        }
+      });
+    }
+  };
+})();
+
+/* =========================================================
+   MODULE: Settings — wires up all toggles with side-effects
+   ========================================================= */
+const Settings = (() => {
+  let currentLang = 'en';
+
+  function initToggle(id, storageKey, defaultVal, onChange) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = JSON.parse(localStorage.getItem(storageKey) || String(defaultVal));
+    if (val) { el.classList.add('on'); el.setAttribute('aria-checked', 'true'); }
+    const toggle = () => {
+      el.classList.toggle('on');
+      const newVal = el.classList.contains('on');
+      el.setAttribute('aria-checked', String(newVal));
+      localStorage.setItem(storageKey, JSON.stringify(newVal));
+      onChange(newVal);
+    };
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    return val;
+  }
+
+  return {
+    init() {
+      // Auto-save
+      const autoSave = initToggle('autoSaveToggle', 'cl_autosave', false, val => {
+        Chat.setAutoSave(val);
+        if (val) History.render();
+      });
+      Chat.setAutoSave(autoSave);
+
+      // AI Mode
+      const aiMode = initToggle('aiModeToggle', 'cl_ai_mode', false, val => {
+        Chat.setAIMode(val);
+        const subtitle = document.getElementById('aiModeSubtitle');
+        if (subtitle) subtitle.textContent = val ? 'Smart answers active' : 'Using campus FAQ';
+      });
+      Chat.setAIMode(aiMode);
+      const subtitle = document.getElementById('aiModeSubtitle');
+      if (subtitle) subtitle.textContent = aiMode ? 'Smart answers active' : 'Using campus FAQ';
+
+      // Voice responses
+      const voiceOn = initToggle('voiceToggle', 'cl_voice', true, val => Chat.setVoiceEnabled(val));
+      Chat.setVoiceEnabled(voiceOn !== false);
+
+      // Gemini key input
+      const keyInput = document.getElementById('geminiKeyInput');
+      if (keyInput) {
+        const saved = GeminiService.getKey();
+        if (saved) keyInput.value = saved;
+      }
+
+      // Remaining generic toggles (dark mode, notifications, etc.)
+      UI.initToggles(['autoSaveToggle', 'aiModeToggle', 'voiceToggle']);
+    }
+  };
+})();
+
+/* =========================================================
+   BOOTSTRAP — wires everything together
+   ========================================================= */
+(function init() {
+  UI.initClock();
+  UI.initModal();
+
+  let currentLang = 'en';
+  const getLang = () => currentLang;
+
+  // Override setLang to also track in bootstrap scope
+  const originalSetLang = window.setLang;
+  window.setLang = (lang) => { currentLang = lang; originalSetLang(lang); };
+
+  UI.initNav((screenName) => {
+    if (screenName === 'chat') Chat.startDemo();
+    if (screenName === 'history') History.render();
+    if (screenName === 'settings') AdminPanel.refresh();
+  });
+
+  Chat.init();
+  Settings.init();
+  VoiceScreen.init(getLang);
+  AdminPanel.init();
+
+  document.getElementById('profileBtn')?.addEventListener('click', () => window._goToScreen('settings'));
+})();
+</script>
+
+</body>
+</html>
