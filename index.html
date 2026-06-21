@@ -940,7 +940,8 @@ If the CONTEXT is empty or does not answer the question: say so internally and a
 Always keep answers concise, friendly, and under 100 words.
 Reply in the same language the user wrote in (English, Hindi, or Hadoti/Rajasthani dialect — simple Hindi if Hadoti isn't possible).`;
 
-  let apiKey = localStorage.getItem('cl_gemini_key') || '';
+  const DEFAULT_API_KEY = 'AQ.Ab8RN6K4H1KNpX6FTCNKju-N7bAlPK-aK6d1Oadd7ZAq0KhHKw';
+  let apiKey = localStorage.getItem('cl_gemini_key') || DEFAULT_API_KEY;
   let lastCallTime = 0;
   const COOLDOWN_MS = 3000;
   // Conversation context window (last 10 turns)
